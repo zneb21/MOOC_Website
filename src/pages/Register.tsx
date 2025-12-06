@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,19 @@ import { GraduationCap, Eye, EyeOff, User, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+// Utility function for basic email format validation
+const isValidEmail = (email: string) => {
+  return /\S+@\S+\.\S+/.test(email);
+};
+
 const Register = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [role, setRole] = useState<"learner" | "instructor">("learner");
+  // Role state is crucial for database integration
+  const [role, setRole] = useState<"learner" | "instructor">("learner"); 
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -21,9 +28,17 @@ const Register = () => {
     confirmPassword: "",
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // 1. Password Match Validation (Client-Side)
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -32,23 +47,77 @@ const Register = () => {
       });
       return;
     }
-    
-    setIsLoading(true);
-    
-    // Simulate registration
-    setTimeout(() => {
-      setIsLoading(false);
+
+    // 2. Email Format Validation (Client-Side)
+    if (!isValidEmail(formData.email)) {
       toast({
-        title: "Account created!",
-        description: "Registration functionality will be available soon.",
+        title: "Validation Error",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
       });
-    }, 1500);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // 3. Send request to the backend API (Adjust URL if needed)
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password, 
+          role: role, // Sending the selected role
+        }),
+      });
+
+      // 4. Handle API Response
+      if (response.ok) {
+        // Successful registration (HTTP 200/201)
+        toast({
+          title: "Registration Successful! 🎉",
+          description: "Your account has been created. You can now sign in.",
+        });
+
+        // Redirect user to the login page
+        navigate("/login");
+      } else {
+        const errorData = await response.json().catch(() => ({ message: "Server error" }));
+        let errorMessage = "An error occurred during registration.";
+        
+        // Handle specific errors like email already exists (assuming backend uses 409 or similar)
+        if (response.status === 409) {
+          errorMessage = "This email address is already in use. Please sign in or use a different email.";
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+
+        toast({
+          title: "Registration Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Network Error",
+        description: "Could not connect to the server. Please ensure your backend is running.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-muted">
       <Navbar />
-      
+
       <main className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           {/* Card */}
@@ -121,7 +190,7 @@ const Register = () => {
                   type="text"
                   placeholder="Enter your full name"
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  onChange={handleInputChange}
                   required
                   className="h-12"
                 />
@@ -134,7 +203,7 @@ const Register = () => {
                   type="email"
                   placeholder="Enter your email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={handleInputChange}
                   required
                   className="h-12"
                 />
@@ -148,7 +217,7 @@ const Register = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a password"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={handleInputChange}
                     required
                     className="h-12 pr-12"
                   />
@@ -174,7 +243,7 @@ const Register = () => {
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    onChange={handleInputChange}
                     required
                     className="h-12 pr-12"
                   />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; 
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,26 @@ import { Label } from "@/components/ui/label";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// Utility function for basic email format validation
+const isValidEmail = (email: string) => {
+  return /\S+@\S+\.\S+/.test(email);
+};
+
+// Define the shape of the data returned by the backend on successful login
+interface LoginResponse {
+  message: string;
+  token: string; // Authentication token (e.g., JWT)
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: "learner" | "instructor"; // Include role here
+  };
+}
+
 const Login = () => {
   const { toast } = useToast();
+  const navigate = useNavigate(); 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -16,24 +34,86 @@ const Login = () => {
     password: "",
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate login
-    setTimeout(() => {
+
+    // 1. Client-side Email Validation
+    if (!isValidEmail(formData.email)) {
       setIsLoading(false);
       toast({
-        title: "Welcome back!",
-        description: "Login functionality will be available soon.",
+        title: "Validation Error",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
       });
-    }, 1500);
+      return;
+    }
+
+    try {
+      // 2. Send request to the backend API (Adjust URL if needed, e.g., "http://localhost:3001/api/auth/login")
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      // 3. Handle API Response
+      if (response.ok) {
+        // Successful login (HTTP 200)
+        const data: LoginResponse = await response.json();
+        
+        // Store the token and user data (crucial for auth state)
+        localStorage.setItem("userToken", data.token);
+        localStorage.setItem("userName", data.user.name);
+        localStorage.setItem("userRole", data.user.role);
+        
+        toast({
+          title: "Login Successful! 🎉",
+          description: `Welcome back, ${data.user.name}. You are logged in as a ${data.user.role}.`,
+        });
+
+        // Redirect user to dashboard or home page
+        navigate("/dashboard");
+      } else if (response.status === 401) {
+        // Unauthorized (Invalid credentials)
+        toast({
+          title: "Login Failed",
+          description: "Invalid email or password.",
+          variant: "destructive",
+        });
+      } else {
+        // Other errors (e.g., 500 server error)
+        const errorData = await response.json().catch(() => ({ message: "Server error" }));
+        throw new Error(`Login failed: ${errorData.message || response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Network Error",
+        description: "Could not connect to the server. Please ensure your backend is running.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-muted">
       <Navbar />
-      
+
       <main className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           {/* Card */}
@@ -54,13 +134,13 @@ const Login = () => {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">Email or Username</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  type="text"
-                  placeholder="Enter your email or username"
+                  type="email" 
+                  placeholder="Enter your email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={handleInputChange}
                   required
                   className="h-12"
                 />
@@ -82,7 +162,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={handleInputChange}
                     required
                     className="h-12 pr-12"
                   />
