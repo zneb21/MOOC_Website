@@ -585,6 +585,8 @@ const CoursePreview = () => {
 
                 {/* Course Modules */}
                 <div className="animate-fade-up delay-100">
+                  
+                  {/* I use accordion for drop-down menus chuchu */}
                   <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="course-content" className="border-none">
                       <AccordionTrigger className="hover:no-underline p-0">
@@ -597,28 +599,31 @@ const CoursePreview = () => {
                         <p className="text-muted-foreground mb-4">
                           {course.modules.length} modules • {course.modules.reduce((acc, mod) => acc + mod.lessons.length, 0)} lessons • {course.duration} total
                         </p>
-                        <div className="space-y-3">
+
+                        {/* Drop-down menus for content/lessons chuchu */}
+                        <Accordion type="single" collapsible className="w-full space-y-3">
                           {course.modules.map((module, index) => (
-                            <div
-                              key={index}
-                              className="bg-card rounded-xl shadow-soft hover:shadow-medium transition-shadow overflow-hidden"
-                            >
-                              <div className="px-4 py-4">
+                            <AccordionItem 
+                             key={index} 
+                             value={`module-${index + 1}`} 
+                             className="bg-card rounded-xl shadow-soft hover:shadow-medium transition-shadow overflow-hidden border-b-0"
+                           >
+                              <AccordionTrigger className="px-4 py-4 hover:no-underline flex justify-between w-full">
                                 <div className="flex items-center gap-3">
                                   <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
                                     {index + 1}
                                   </span>
-                                  <div>
-                                    <h3 className="font-semibold text-foreground">
-                                      {module.title}
-                                    </h3>
-                                    <p className="text-muted-foreground text-sm">
-                                      {module.lessons.length} lessons • {module.duration}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            <div className="px-4 pb-4">
+                                  <div className='text-left'>
+                                   <h3 className="font-semibold text-foreground">
+                                     {module.title}
+                                   </h3>
+                                   <p className="text-muted-foreground text-sm">
+                                     {module.lessons.length} lessons • {module.duration}
+                                   </p>
+                                 </div>
+                               </div>
+                              </AccordionTrigger>
+                            <AccordionContent className="px-4 pb-4">
                                 <div className="space-y-2 pt-2 border-t border-border">
                                   {module.lessons.map((lesson, lessonIndex) => (
                                     <div
@@ -641,10 +646,10 @@ const CoursePreview = () => {
                                     </div>
                                   ))}
                                 </div>
-                              </div>
-                            </div>
+                              </AccordionContent>
+                           </AccordionItem>
                           ))}
-                        </div>
+                        </Accordion>
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
