@@ -2,11 +2,24 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Star, Clock, Users, PlayCircle, CheckCircle, Award, BookOpen } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Star, Clock, Users, PlayCircle, CheckCircle, Award, BookOpen, FileText, HelpCircle } from "lucide-react";
 import tourismImage from "@/assets/course-tourism.jpg";
 import cookingImage from "@/assets/course-cooking.jpg";
 import agricultureImage from "@/assets/course-agriculture.jpg";
 import craftsImage from "@/assets/course-crafts.jpg";
+
+type Lesson = {
+  title: string;
+  duration: string;
+  type: 'video' | 'reading' | 'quiz';
+};
+
+type Module = {
+  title: string;
+  lessons: Lesson[];
+  duration: string;
+};
 
 const coursesData: Record<string, {
   id: number;
@@ -22,7 +35,7 @@ const coursesData: Record<string, {
   description: string;
   longDescription: string;
   objectives: string[];
-  modules: { title: string; lessons: number; duration: string }[];
+  modules: Module[];
   reviews: { name: string; rating: number; comment: string }[];
 }> = {
   "1": {
@@ -46,11 +59,44 @@ const coursesData: Record<string, {
       "Plan complete itineraries for different travel styles",
     ],
     modules: [
-      { title: "Introduction to Iloilo", lessons: 5, duration: "1h 30m" },
-      { title: "Historic Churches & Heritage Sites", lessons: 8, duration: "2h 15m" },
-      { title: "Festivals & Cultural Events", lessons: 4, duration: "1h" },
-      { title: "Local Cuisine & Food Tourism", lessons: 6, duration: "1h 45m" },
-      { title: "Hidden Gems & Day Trips", lessons: 5, duration: "1h 30m" },
+      { title: "Introduction to Iloilo", duration: "1h 30m", lessons: [
+        { title: "Welcome to Iloilo", duration: "5:00", type: "video" },
+        { title: "History Overview", duration: "12:30", type: "video" },
+        { title: "Geography & Climate", duration: "8:45", type: "reading" },
+        { title: "Cultural Identity of Ilonggos", duration: "15:00", type: "video" },
+        { title: "Module Quiz", duration: "10:00", type: "quiz" },
+      ]},
+      { title: "Historic Churches & Heritage Sites", duration: "2h 15m", lessons: [
+        { title: "Jaro Cathedral", duration: "18:00", type: "video" },
+        { title: "Molo Church", duration: "15:30", type: "video" },
+        { title: "San Jose Church", duration: "12:00", type: "video" },
+        { title: "Heritage Walking Tour Guide", duration: "20:00", type: "reading" },
+        { title: "Lopez Heritage House", duration: "14:00", type: "video" },
+        { title: "Iloilo Museum of Contemporary Art", duration: "16:00", type: "video" },
+        { title: "Preservation Efforts", duration: "10:00", type: "reading" },
+        { title: "Heritage Sites Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Festivals & Cultural Events", duration: "1h", lessons: [
+        { title: "Dinagyang Festival", duration: "20:00", type: "video" },
+        { title: "Paraw Regatta", duration: "15:00", type: "video" },
+        { title: "Local Fiestas Calendar", duration: "10:00", type: "reading" },
+        { title: "Festival Photography Tips", duration: "15:00", type: "video" },
+      ]},
+      { title: "Local Cuisine & Food Tourism", duration: "1h 45m", lessons: [
+        { title: "La Paz Batchoy Origins", duration: "18:00", type: "video" },
+        { title: "Pancit Molo History", duration: "15:00", type: "video" },
+        { title: "Best Food Spots Guide", duration: "12:00", type: "reading" },
+        { title: "Seafood Markets Tour", duration: "20:00", type: "video" },
+        { title: "Street Food Adventure", duration: "18:00", type: "video" },
+        { title: "Cuisine Quiz", duration: "12:00", type: "quiz" },
+      ]},
+      { title: "Hidden Gems & Day Trips", duration: "1h 30m", lessons: [
+        { title: "Islas de Gigantes", duration: "22:00", type: "video" },
+        { title: "Guimaras Island", duration: "18:00", type: "video" },
+        { title: "Planning Your Day Trip", duration: "15:00", type: "reading" },
+        { title: "Off-the-beaten Path", duration: "20:00", type: "video" },
+        { title: "Final Assessment", duration: "15:00", type: "quiz" },
+      ]},
     ],
     reviews: [
       { name: "Jose M.", rating: 5, comment: "Amazing course! I learned so much about my own city." },
@@ -79,11 +125,48 @@ const coursesData: Record<string, {
       "Create your own variations while respecting tradition",
     ],
     modules: [
-      { title: "Filipino Cooking Fundamentals", lessons: 6, duration: "2h" },
-      { title: "Classic Meat Dishes", lessons: 8, duration: "3h" },
-      { title: "Seafood Specialties", lessons: 6, duration: "2h 30m" },
-      { title: "Vegetable & Side Dishes", lessons: 5, duration: "2h" },
-      { title: "Regional Specialties", lessons: 7, duration: "2h 30m" },
+      { title: "Filipino Cooking Fundamentals", duration: "2h", lessons: [
+        { title: "Essential Kitchen Tools", duration: "12:00", type: "video" },
+        { title: "Basic Cutting Techniques", duration: "18:00", type: "video" },
+        { title: "Understanding Filipino Flavors", duration: "15:00", type: "video" },
+        { title: "Ingredient Sourcing Guide", duration: "20:00", type: "reading" },
+        { title: "Stock & Broth Basics", duration: "22:00", type: "video" },
+        { title: "Fundamentals Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Classic Meat Dishes", duration: "3h", lessons: [
+        { title: "Chicken Adobo", duration: "25:00", type: "video" },
+        { title: "Pork Adobo Variations", duration: "22:00", type: "video" },
+        { title: "Beef Caldereta", duration: "28:00", type: "video" },
+        { title: "Kare-Kare", duration: "30:00", type: "video" },
+        { title: "Lechon Kawali", duration: "20:00", type: "video" },
+        { title: "Bistek Tagalog", duration: "18:00", type: "video" },
+        { title: "Meat Selection Tips", duration: "12:00", type: "reading" },
+        { title: "Meat Dishes Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Seafood Specialties", duration: "2h 30m", lessons: [
+        { title: "Sinigang na Hipon", duration: "22:00", type: "video" },
+        { title: "Grilled Bangus", duration: "20:00", type: "video" },
+        { title: "Paksiw na Isda", duration: "18:00", type: "video" },
+        { title: "Fresh Seafood Guide", duration: "15:00", type: "reading" },
+        { title: "Kinilaw", duration: "20:00", type: "video" },
+        { title: "Seafood Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Vegetable & Side Dishes", duration: "2h", lessons: [
+        { title: "Pinakbet", duration: "20:00", type: "video" },
+        { title: "Ginataang Kalabasa", duration: "18:00", type: "video" },
+        { title: "Ensaladang Talong", duration: "12:00", type: "video" },
+        { title: "Seasonal Vegetables", duration: "15:00", type: "reading" },
+        { title: "Vegetable Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Regional Specialties", duration: "2h 30m", lessons: [
+        { title: "Bicol Express", duration: "22:00", type: "video" },
+        { title: "Laing", duration: "18:00", type: "video" },
+        { title: "Ilocos Bagnet", duration: "25:00", type: "video" },
+        { title: "Visayan Dishes", duration: "20:00", type: "video" },
+        { title: "Regional Ingredients", duration: "15:00", type: "reading" },
+        { title: "Mindanao Specialties", duration: "18:00", type: "video" },
+        { title: "Final Cooking Assessment", duration: "20:00", type: "quiz" },
+      ]},
     ],
     reviews: [
       { name: "Lisa P.", rating: 5, comment: "My adobo has never tasted better! Thank you Chef!" },
@@ -112,11 +195,36 @@ const coursesData: Record<string, {
       "Prepare for harvest and post-harvest handling",
     ],
     modules: [
-      { title: "Introduction to Rice Farming", lessons: 4, duration: "1h" },
-      { title: "Land Preparation & Planting", lessons: 5, duration: "1h 30m" },
-      { title: "Sustainable Pest Management", lessons: 4, duration: "1h 15m" },
-      { title: "Water & Nutrient Management", lessons: 4, duration: "1h 15m" },
-      { title: "Harvesting & Processing", lessons: 3, duration: "1h" },
+      { title: "Introduction to Rice Farming", duration: "1h", lessons: [
+        { title: "Rice Farming in the Philippines", duration: "15:00", type: "video" },
+        { title: "Types of Rice Varieties", duration: "18:00", type: "video" },
+        { title: "Understanding Seasons", duration: "12:00", type: "reading" },
+        { title: "Introduction Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Land Preparation & Planting", duration: "1h 30m", lessons: [
+        { title: "Soil Analysis", duration: "15:00", type: "video" },
+        { title: "Land Preparation Techniques", duration: "22:00", type: "video" },
+        { title: "Seedbed Preparation", duration: "18:00", type: "video" },
+        { title: "Transplanting Methods", duration: "20:00", type: "video" },
+        { title: "Planting Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Sustainable Pest Management", duration: "1h 15m", lessons: [
+        { title: "Common Rice Pests", duration: "18:00", type: "video" },
+        { title: "Natural Pest Control", duration: "20:00", type: "video" },
+        { title: "Organic Solutions Guide", duration: "15:00", type: "reading" },
+        { title: "Pest Management Quiz", duration: "12:00", type: "quiz" },
+      ]},
+      { title: "Water & Nutrient Management", duration: "1h 15m", lessons: [
+        { title: "Irrigation Systems", duration: "20:00", type: "video" },
+        { title: "Water Conservation", duration: "18:00", type: "video" },
+        { title: "Organic Fertilizers", duration: "15:00", type: "reading" },
+        { title: "Nutrient Quiz", duration: "12:00", type: "quiz" },
+      ]},
+      { title: "Harvesting & Processing", duration: "1h", lessons: [
+        { title: "Harvest Timing", duration: "18:00", type: "video" },
+        { title: "Post-Harvest Handling", duration: "22:00", type: "video" },
+        { title: "Final Assessment", duration: "20:00", type: "quiz" },
+      ]},
     ],
     reviews: [
       { name: "Pedro G.", rating: 5, comment: "Very practical knowledge. Applied it to our farm immediately." },
@@ -145,11 +253,42 @@ const coursesData: Record<string, {
       "Complete a finished hablon textile product",
     ],
     modules: [
-      { title: "History of Hablon Weaving", lessons: 3, duration: "45m" },
-      { title: "Loom Setup & Basics", lessons: 6, duration: "2h 30m" },
-      { title: "Traditional Patterns", lessons: 8, duration: "3h" },
-      { title: "Advanced Techniques", lessons: 5, duration: "2h 15m" },
-      { title: "Finishing & Care", lessons: 4, duration: "1h 30m" },
+      { title: "History of Hablon Weaving", duration: "45m", lessons: [
+        { title: "Origins of Hablon", duration: "15:00", type: "video" },
+        { title: "Ilonggo Weaving Traditions", duration: "18:00", type: "video" },
+        { title: "Cultural Significance Quiz", duration: "12:00", type: "quiz" },
+      ]},
+      { title: "Loom Setup & Basics", duration: "2h 30m", lessons: [
+        { title: "Parts of the Loom", duration: "20:00", type: "video" },
+        { title: "Setting Up Your Loom", duration: "28:00", type: "video" },
+        { title: "Warp Preparation", duration: "25:00", type: "video" },
+        { title: "Threading Guide", duration: "20:00", type: "reading" },
+        { title: "Basic Weaving Motion", duration: "22:00", type: "video" },
+        { title: "Loom Basics Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Traditional Patterns", duration: "3h", lessons: [
+        { title: "Basic Stripes", duration: "25:00", type: "video" },
+        { title: "Check Patterns", duration: "22:00", type: "video" },
+        { title: "Geometric Designs", duration: "28:00", type: "video" },
+        { title: "Pattern Reading Guide", duration: "18:00", type: "reading" },
+        { title: "Color Theory for Weaving", duration: "20:00", type: "video" },
+        { title: "Creating Your Own Pattern", duration: "25:00", type: "video" },
+        { title: "Traditional Motifs", duration: "22:00", type: "video" },
+        { title: "Patterns Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Advanced Techniques", duration: "2h 15m", lessons: [
+        { title: "Complex Pattern Weaving", duration: "30:00", type: "video" },
+        { title: "Multi-color Threading", duration: "25:00", type: "video" },
+        { title: "Tension Control", duration: "20:00", type: "video" },
+        { title: "Troubleshooting Guide", duration: "15:00", type: "reading" },
+        { title: "Advanced Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Finishing & Care", duration: "1h 30m", lessons: [
+        { title: "Removing from Loom", duration: "18:00", type: "video" },
+        { title: "Finishing Edges", duration: "22:00", type: "video" },
+        { title: "Care Instructions", duration: "15:00", type: "reading" },
+        { title: "Final Project Assessment", duration: "20:00", type: "quiz" },
+      ]},
     ],
     reviews: [
       { name: "Elena R.", rating: 5, comment: "Lola Perla is a treasure! So grateful for this course." },
@@ -264,30 +403,69 @@ const CoursePreview = () => {
 
                 {/* Course Modules */}
                 <div className="animate-fade-up delay-100">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <PlayCircle className="w-6 h-6 text-primary" />
-                    Course Content
-                  </h2>
-                  <div className="space-y-3">
-                    {course.modules.map((module, index) => (
-                      <div
-                        key={index}
-                        className="bg-card rounded-xl p-4 shadow-soft hover:shadow-medium transition-shadow"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold text-foreground mb-1">
-                              {index + 1}. {module.title}
-                            </h3>
-                            <p className="text-muted-foreground text-sm">
-                              {module.lessons} lessons • {module.duration}
-                            </p>
-                          </div>
-                          <PlayCircle className="w-5 h-5 text-muted-foreground" />
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="course-content" className="border-none">
+                      <AccordionTrigger className="hover:no-underline p-0">
+                        <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
+                          <PlayCircle className="w-6 h-6 text-primary" />
+                          Course Content
+                        </h2>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-4">
+                        <p className="text-muted-foreground mb-4">
+                          {course.modules.length} modules • {course.modules.reduce((acc, mod) => acc + mod.lessons.length, 0)} lessons • {course.duration} total
+                        </p>
+                        <div className="space-y-3">
+                          {course.modules.map((module, index) => (
+                            <div
+                              key={index}
+                              className="bg-card rounded-xl shadow-soft hover:shadow-medium transition-shadow overflow-hidden"
+                            >
+                              <div className="px-4 py-4">
+                                <div className="flex items-center gap-3">
+                                  <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
+                                    {index + 1}
+                                  </span>
+                                  <div>
+                                    <h3 className="font-semibold text-foreground">
+                                      {module.title}
+                                    </h3>
+                                    <p className="text-muted-foreground text-sm">
+                                      {module.lessons.length} lessons • {module.duration}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            <div className="px-4 pb-4">
+                                <div className="space-y-2 pt-2 border-t border-border">
+                                  {module.lessons.map((lesson, lessonIndex) => (
+                                    <div
+                                      key={lessonIndex}
+                                      className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        {lesson.type === 'video' && (
+                                          <PlayCircle className="w-4 h-4 text-primary" />
+                                        )}
+                                        {lesson.type === 'reading' && (
+                                          <FileText className="w-4 h-4 text-secondary" />
+                                        )}
+                                        {lesson.type === 'quiz' && (
+                                          <HelpCircle className="w-4 h-4 text-accent-foreground" />
+                                        )}
+                                        <span className="text-foreground text-sm">{lesson.title}</span>
+                                      </div>
+                                      <span className="text-muted-foreground text-sm">{lesson.duration}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
 
                 {/* Reviews */}
