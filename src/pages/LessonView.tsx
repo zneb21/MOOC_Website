@@ -221,7 +221,7 @@ export default function UdemyLayout() {
             {sidebarTab === 'chat' && (
               <div className="flex-1 flex flex-col gap-2" style={{ minHeight: 0 }}>
                 <div className="text-sm font-semibold text-slate-700">Assistant</div>
-                <div className="flex-1 rounded-md bg-background p-2 flex flex-col justify-end" style={{ minHeight: 0 }}>
+                <div className="flex-1 rounded-md bg-background pb-3 flex flex-col justify-end" style={{ minHeight: 0 }}>
                   <div className="text-xs text-slate-600 mb-2">Type a question about the lesson.</div>
                   <div className="flex gap-2">
                     <input ref={chatInputRef} type="text" placeholder="Ask the assistant..." className="flex-1 rounded-md border border-slate-200 py-1.5 text-sm mb-3" />
