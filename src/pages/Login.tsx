@@ -7,6 +7,10 @@ import { Label } from "@/components/ui/label";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// --- ABSOLUTE URL: CRITICAL FIX for XAMPP connection ---
+const API_BASE_URL = "http://localhost/mooc_api"; 
+// --------------------------------------------------------
+
 // Utility function for basic email format validation
 const isValidEmail = (email: string) => {
   return /\S+@\S+\.\S+/.test(email);
@@ -15,12 +19,12 @@ const isValidEmail = (email: string) => {
 // Define the shape of the data returned by the backend on successful login
 interface LoginResponse {
   message: string;
-  token: string; // Authentication token (e.g., JWT)
+  token: string;
   user: {
     id: number;
     name: string;
     email: string;
-    role: "learner" | "instructor"; // Include role here
+    role: "learner" | "instructor";
   };
 }
 
@@ -45,7 +49,6 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // 1. Client-side Email Validation
     if (!isValidEmail(formData.email)) {
       setIsLoading(false);
       toast({
@@ -57,8 +60,8 @@ const Login = () => {
     }
 
     try {
-      // 2. Send request to the backend API (Adjust URL if needed, e.g., "http://localhost:3001/api/auth/login")
-      const response = await fetch("/api/auth/login", {
+      // API call using the absolute path
+      const response = await fetch(`${API_BASE_URL}/api/auth/login.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,40 +72,39 @@ const Login = () => {
         }),
       });
 
-      // 3. Handle API Response
       if (response.ok) {
-        // Successful login (HTTP 200)
         const data: LoginResponse = await response.json();
         
-        // Store the token and user data (crucial for auth state)
+        // Store user authentication data
         localStorage.setItem("userToken", data.token);
         localStorage.setItem("userName", data.user.name);
         localStorage.setItem("userRole", data.user.role);
         
         toast({
           title: "Login Successful! 🎉",
-          description: `Welcome back, ${data.user.name}. You are logged in as a ${data.user.role}.`,
+          description: `Welcome back, ${data.user.name}.`,
         });
 
-        // Redirect user to dashboard or home page
         navigate("/dashboard");
       } else if (response.status === 401) {
-        // Unauthorized (Invalid credentials)
         toast({
           title: "Login Failed",
           description: "Invalid email or password.",
           variant: "destructive",
         });
       } else {
-        // Other errors (e.g., 500 server error)
         const errorData = await response.json().catch(() => ({ message: "Server error" }));
-        throw new Error(`Login failed: ${errorData.message || response.statusText}`);
+        toast({ 
+            title: "Login Failed", 
+            description: errorData.message || "Server error occurred.", 
+            variant: "destructive" 
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
       toast({
         title: "Network Error",
-        description: "Could not connect to the server. Please ensure your backend is running.",
+        description: "Could not connect to the server. Please ensure your XAMPP Apache service is running.",
         variant: "destructive",
       });
     } finally {

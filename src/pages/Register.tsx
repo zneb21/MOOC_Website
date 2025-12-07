@@ -8,6 +8,10 @@ import { GraduationCap, Eye, EyeOff, User, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+// --- ABSOLUTE URL: CRITICAL FIX for XAMPP connection ---
+const API_BASE_URL = "http://localhost/mooc_api";
+// --------------------------------------------------------
+
 // Utility function for basic email format validation
 const isValidEmail = (email: string) => {
   return /\S+@\S+\.\S+/.test(email);
@@ -19,7 +23,6 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // Role state is crucial for database integration
   const [role, setRole] = useState<"learner" | "instructor">("learner"); 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -38,7 +41,7 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Password Match Validation (Client-Side)
+    // 1. Client-Side Validations
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -48,7 +51,6 @@ const Register = () => {
       return;
     }
 
-    // 2. Email Format Validation (Client-Side)
     if (!isValidEmail(formData.email)) {
       toast({
         title: "Validation Error",
@@ -61,8 +63,8 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // 3. Send request to the backend API (Adjust URL if needed)
-      const response = await fetch("/api/auth/register", {
+      // API call using the absolute path
+      const response = await fetch(`${API_BASE_URL}/api/auth/register.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -71,25 +73,22 @@ const Register = () => {
           name: formData.fullName,
           email: formData.email,
           password: formData.password, 
-          role: role, // Sending the selected role
+          role: role, 
         }),
       });
 
-      // 4. Handle API Response
+      // 2. Handle API Response
       if (response.ok) {
-        // Successful registration (HTTP 200/201)
         toast({
           title: "Registration Successful! 🎉",
           description: "Your account has been created. You can now sign in.",
         });
 
-        // Redirect user to the login page
         navigate("/login");
       } else {
         const errorData = await response.json().catch(() => ({ message: "Server error" }));
         let errorMessage = "An error occurred during registration.";
         
-        // Handle specific errors like email already exists (assuming backend uses 409 or similar)
         if (response.status === 409) {
           errorMessage = "This email address is already in use. Please sign in or use a different email.";
         } else if (errorData.message) {
@@ -106,7 +105,7 @@ const Register = () => {
       console.error("Registration error:", error);
       toast({
         title: "Network Error",
-        description: "Could not connect to the server. Please ensure your backend is running.",
+        description: "Could not connect to the server. Please ensure your XAMPP Apache service is running.",
         variant: "destructive",
       });
     } finally {
