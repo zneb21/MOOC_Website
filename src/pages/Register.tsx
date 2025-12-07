@@ -79,6 +79,7 @@ const Register = () => {
 
       // 2. Handle API Response
       if (response.ok) {
+        // Success (HTTP 201 Created or 200 OK)
         toast({
           title: "Registration Successful! 🎉",
           description: "Your account has been created. You can now sign in.",
@@ -86,17 +87,35 @@ const Register = () => {
 
         navigate("/login");
       } else {
-        const errorData = await response.json().catch(() => ({ message: "Server error" }));
-        let errorMessage = "An error occurred during registration.";
+        // Error (HTTP 4xx or 5xx)
+        let errorTitle = "Registration Failed";
+        let errorMessage = "An unexpected error occurred during registration.";
         
-        if (response.status === 409) {
-          errorMessage = "This email address is already in use. Please sign in or use a different email.";
-        } else if (errorData.message) {
-          errorMessage = errorData.message;
+        try {
+            const errorData = await response.json();
+            
+            if (response.status === 409) {
+                // FIX: Explicitly handle 409 Conflict from PHP (Duplicate email)
+                errorTitle = "Email Already Registered";
+                errorMessage = errorData.message || "This email is already in use. Please sign in or use a different email.";
+            } else if (errorData.message) {
+                // Use the error message sent by PHP for other errors (e.g., 400 Bad Request)
+                errorMessage = errorData.message;
+            } else if (response.status === 500) {
+                 errorTitle = "Server Error";
+                 errorMessage = "Internal Server Error. Please check XAMPP logs.";
+            }
+            
+        } catch (e) {
+            // Server error but response body wasn't JSON (e.g., PHP error text)
+            if (response.status === 500) {
+                 errorTitle = "Server Error";
+                 errorMessage = "Internal Server Error. Please check XAMPP logs.";
+            }
         }
 
         toast({
-          title: "Registration Failed",
+          title: errorTitle,
           description: errorMessage,
           variant: "destructive",
         });
