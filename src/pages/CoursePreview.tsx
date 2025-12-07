@@ -25,31 +25,6 @@ type Module = {
 // ✅ data coming from PHP/MySQL
 const API_URL = "http://localhost/mooc_api/get_courses.php";
 
-
-
-// ✅ nested lessons from ref_course_lessons
-type LessonFromApi = {
-  lesson_id: number;
-  content_id: number;
-  lesson_title: string;
-  lesson_duration: string | null;
-  lesson_type: 'video' | 'reading' | 'quiz' | null;
-  created_at: string;
-  updated_at: string;
-};
-
-type CourseContentFromApi = {
-  content_id: number;
-  course_conn_id: number;
-  course_id: number;                 // sequence/index
-  course_content_title: string;
-  course_content_lessons: number;
-  course_content_length: string | null;
-  created_at: string;
-  updated_at: string;
-  lessons?: LessonFromApi[];         // ⬅️ comes from PHP "lessons" field
-};
-
 // ✅ shape of rows from your API
 interface CourseFromApi {
   course_id: number;
@@ -62,24 +37,48 @@ interface CourseFromApi {
   instructor_name?: string | null;
   instructor_bio?: string | null; 
   instructor_image_url?: string | null;
-  instructor_title?: string | null;  
-  course_contents?: CourseContentFromApi[];
+  instructor_title?: string | null;   // ✅ new
 }
 
-// ⭐ Only keep extra meta not yet in DB (objectives, reviews, rating, students, duration)
-type StaticCourseMeta = {
-  rating: number;
-  students: number;
-  duration: string;
-  objectives: string[];
-  reviews: { name: string; rating: number; comment: string }[];
-};
 
-const staticMetaById: Record<string, StaticCourseMeta> = {
+// ✅ original static data (keeps objectives, modules, reviews, etc.)
+const coursesData: Record<
+  string,
+  {
+    id: number;
+    title: string;
+    instructor: string;
+    instructorBio: string;
+    image: string;
+    instructorImage?: string;
+    instructorTitle?: string;
+    rating: number;
+    students: number;
+    duration: string;
+    category: string;
+    price: string;
+    description: string;
+    longDescription: string;
+    objectives: string[];
+    modules: Module[];
+    reviews: { name: string; rating: number; comment: string }[];
+  }
+> = {
   "1": {
+    id: 1,
+    title: "Discover Iloilo: A Complete Tourism Guide",
+    instructor: "Maria Santos",
+    instructorBio:
+      "Maria is a certified tour guide with 15 years of experience showcasing Iloilo's heritage to visitors worldwide.",
+    image: tourismImage,
     rating: 4.9,
     students: 1250,
     duration: "8 hours",
+    category: "Tourism",
+    price: "₱1,499",
+    description: "Explore the rich heritage and hidden gems of Iloilo City.",
+    longDescription:
+      "Embark on a comprehensive journey through Iloilo's rich cultural tapestry. This course covers everything from historic churches to vibrant festivals, local cuisine hotspots, and off-the-beaten-path destinations that make Iloilo truly special.",
     objectives: [
       "Understand Iloilo's historical significance in Philippine history",
       "Navigate popular tourist destinations with confidence",
@@ -87,16 +86,80 @@ const staticMetaById: Record<string, StaticCourseMeta> = {
       "Learn about Ilonggo customs and traditions",
       "Plan complete itineraries for different travel styles",
     ],
+    modules: [
+      { title: "Introduction to Iloilo", duration: "1h 30m", lessons: [
+        { title: "Welcome to Iloilo", duration: "5:00", type: "video" },
+        { title: "History Overview", duration: "12:30", type: "video" },
+        { title: "Geography & Climate", duration: "8:45", type: "reading" },
+        { title: "Cultural Identity of Ilonggos", duration: "15:00", type: "video" },
+        { title: "Module Quiz", duration: "10:00", type: "quiz" },
+      ]},
+      { title: "Historic Churches & Heritage Sites", duration: "2h 15m", lessons: [
+        { title: "Jaro Cathedral", duration: "18:00", type: "video" },
+        { title: "Molo Church", duration: "15:30", type: "video" },
+        { title: "San Jose Church", duration: "12:00", type: "video" },
+        { title: "Heritage Walking Tour Guide", duration: "20:00", type: "reading" },
+        { title: "Lopez Heritage House", duration: "14:00", type: "video" },
+        { title: "Iloilo Museum of Contemporary Art", duration: "16:00", type: "video" },
+        { title: "Preservation Efforts", duration: "10:00", type: "reading" },
+        { title: "Heritage Sites Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Festivals & Cultural Events", duration: "1h", lessons: [
+        { title: "Dinagyang Festival", duration: "20:00", type: "video" },
+        { title: "Paraw Regatta", duration: "15:00", type: "video" },
+        { title: "Local Fiestas Calendar", duration: "10:00", type: "reading" },
+        { title: "Festival Photography Tips", duration: "15:00", type: "video" },
+      ]},
+      { title: "Local Cuisine & Food Tourism", duration: "1h 45m", lessons: [
+        { title: "La Paz Batchoy Origins", duration: "18:00", type: "video" },
+        { title: "Pancit Molo History", duration: "15:00", type: "video" },
+        { title: "Best Food Spots Guide", duration: "12:00", type: "reading" },
+        { title: "Seafood Markets Tour", duration: "20:00", type: "video" },
+        { title: "Street Food Adventure", duration: "18:00", type: "video" },
+        { title: "Cuisine Quiz", duration: "12:00", type: "quiz" },
+      ]},
+      { title: "Hidden Gems & Day Trips", duration: "1h 30m", lessons: [
+        { title: "Islas de Gigantes", duration: "22:00", type: "video" },
+        { title: "Guimaras Island", duration: "18:00", type: "video" },
+        { title: "Planning Your Day Trip", duration: "15:00", type: "reading" },
+        { title: "Off-the-beaten Path", duration: "20:00", type: "video" },
+        { title: "Final Assessment", duration: "15:00", type: "quiz" },
+      ]},
+    ],
     reviews: [
-      { name: "Jose M.", rating: 5, comment: "Amazing course! I learned so much about my own city." },
-      { name: "Anna L.", rating: 5, comment: "Maria is an excellent instructor. Very informative!" },
-      { name: "Mark T.", rating: 4, comment: "Great content, helped me plan my Iloilo trip perfectly." },
+      {
+        name: "Jose M.",
+        rating: 5,
+        comment: "Amazing course! I learned so much about my own city.",
+      },
+      {
+        name: "Anna L.",
+        rating: 5,
+        comment: "Maria is an excellent instructor. Very informative!",
+      },
+      {
+        name: "Mark T.",
+        rating: 4,
+        comment: "Great content, helped me plan my Iloilo trip perfectly.",
+      },
     ],
   },
   "2": {
+    id: 2,
+    title: "Traditional Filipino Cuisine Masterclass",
+    instructor: "Chef Ramon Cruz",
+    instructorBio:
+      "Chef Ramon has 20 years of culinary experience and has trained in Manila, Iloilo, and Paris.",
+    image: cookingImage,
     rating: 4.8,
     students: 980,
     duration: "12 hours",
+    category: "Cooking",
+    price: "₱1,999",
+    description:
+      "Master authentic Filipino recipes passed down through generations.",
+    longDescription:
+      "Learn to cook authentic Filipino dishes from a master chef. This comprehensive course covers traditional recipes, cooking techniques, and the cultural significance behind each dish. From adobo to kare-kare, become a Filipino cuisine expert.",
     objectives: [
       "Master essential Filipino cooking techniques",
       "Prepare classic dishes like Adobo, Sinigang, and Kare-Kare",
@@ -104,16 +167,83 @@ const staticMetaById: Record<string, StaticCourseMeta> = {
       "Source and prepare traditional ingredients",
       "Create your own variations while respecting tradition",
     ],
+    modules: [
+      { title: "Filipino Cooking Fundamentals", duration: "2h", lessons: [
+        { title: "Essential Kitchen Tools", duration: "12:00", type: "video" },
+        { title: "Basic Cutting Techniques", duration: "18:00", type: "video" },
+        { title: "Understanding Filipino Flavors", duration: "15:00", type: "video" },
+        { title: "Ingredient Sourcing Guide", duration: "20:00", type: "reading" },
+        { title: "Stock & Broth Basics", duration: "22:00", type: "video" },
+        { title: "Fundamentals Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Classic Meat Dishes", duration: "3h", lessons: [
+        { title: "Chicken Adobo", duration: "25:00", type: "video" },
+        { title: "Pork Adobo Variations", duration: "22:00", type: "video" },
+        { title: "Beef Caldereta", duration: "28:00", type: "video" },
+        { title: "Kare-Kare", duration: "30:00", type: "video" },
+        { title: "Lechon Kawali", duration: "20:00", type: "video" },
+        { title: "Bistek Tagalog", duration: "18:00", type: "video" },
+        { title: "Meat Selection Tips", duration: "12:00", type: "reading" },
+        { title: "Meat Dishes Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Seafood Specialties", duration: "2h 30m", lessons: [
+        { title: "Sinigang na Hipon", duration: "22:00", type: "video" },
+        { title: "Grilled Bangus", duration: "20:00", type: "video" },
+        { title: "Paksiw na Isda", duration: "18:00", type: "video" },
+        { title: "Fresh Seafood Guide", duration: "15:00", type: "reading" },
+        { title: "Kinilaw", duration: "20:00", type: "video" },
+        { title: "Seafood Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Vegetable & Side Dishes", duration: "2h", lessons: [
+        { title: "Pinakbet", duration: "20:00", type: "video" },
+        { title: "Ginataang Kalabasa", duration: "18:00", type: "video" },
+        { title: "Ensaladang Talong", duration: "12:00", type: "video" },
+        { title: "Seasonal Vegetables", duration: "15:00", type: "reading" },
+        { title: "Vegetable Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Regional Specialties", duration: "2h 30m", lessons: [
+        { title: "Bicol Express", duration: "22:00", type: "video" },
+        { title: "Laing", duration: "18:00", type: "video" },
+        { title: "Ilocos Bagnet", duration: "25:00", type: "video" },
+        { title: "Visayan Dishes", duration: "20:00", type: "video" },
+        { title: "Regional Ingredients", duration: "15:00", type: "reading" },
+        { title: "Mindanao Specialties", duration: "18:00", type: "video" },
+        { title: "Final Cooking Assessment", duration: "20:00", type: "quiz" },
+      ]},
+    ],
     reviews: [
-      { name: "Lisa P.", rating: 5, comment: "My adobo has never tasted better! Thank you Chef!" },
-      { name: "Miguel R.", rating: 5, comment: "Comprehensive and easy to follow. Highly recommended!" },
-      { name: "Sarah K.", rating: 4, comment: "Great course for anyone wanting to learn Filipino cooking." },
+      {
+        name: "Lisa P.",
+        rating: 5,
+        comment: "My adobo has never tasted better! Thank you Chef!",
+      },
+      {
+        name: "Miguel R.",
+        rating: 5,
+        comment: "Comprehensive and easy to follow. Highly recommended!",
+      },
+      {
+        name: "Sarah K.",
+        rating: 4,
+        comment: "Great course for anyone wanting to learn Filipino cooking.",
+      },
     ],
   },
   "3": {
+    id: 3,
+    title: "Sustainable Rice Farming Techniques",
+    instructor: "Juan dela Cruz",
+    instructorBio:
+      "Juan is a 3rd generation rice farmer who has modernized his family's sustainable farming practices.",
+    image: agricultureImage,
     rating: 4.7,
     students: 540,
     duration: "6 hours",
+    category: "Agriculture",
+    price: "₱999",
+    description: "Learn traditional and modern sustainable farming methods.",
+    longDescription:
+      "Discover the art and science of rice farming in the Philippines. This course combines traditional knowledge with modern sustainable practices, perfect for aspiring farmers or anyone interested in agricultural heritage.",
     objectives: [
       "Understand rice cultivation cycles",
       "Implement sustainable farming practices",
@@ -121,16 +251,71 @@ const staticMetaById: Record<string, StaticCourseMeta> = {
       "Optimize water usage and irrigation",
       "Prepare for harvest and post-harvest handling",
     ],
+    modules: [
+      { title: "Introduction to Rice Farming", duration: "1h", lessons: [
+        { title: "Rice Farming in the Philippines", duration: "15:00", type: "video" },
+        { title: "Types of Rice Varieties", duration: "18:00", type: "video" },
+        { title: "Understanding Seasons", duration: "12:00", type: "reading" },
+        { title: "Introduction Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Land Preparation & Planting", duration: "1h 30m", lessons: [
+        { title: "Soil Analysis", duration: "15:00", type: "video" },
+        { title: "Land Preparation Techniques", duration: "22:00", type: "video" },
+        { title: "Seedbed Preparation", duration: "18:00", type: "video" },
+        { title: "Transplanting Methods", duration: "20:00", type: "video" },
+        { title: "Planting Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Sustainable Pest Management", duration: "1h 15m", lessons: [
+        { title: "Common Rice Pests", duration: "18:00", type: "video" },
+        { title: "Natural Pest Control", duration: "20:00", type: "video" },
+        { title: "Organic Solutions Guide", duration: "15:00", type: "reading" },
+        { title: "Pest Management Quiz", duration: "12:00", type: "quiz" },
+      ]},
+      { title: "Water & Nutrient Management", duration: "1h 15m", lessons: [
+        { title: "Irrigation Systems", duration: "20:00", type: "video" },
+        { title: "Water Conservation", duration: "18:00", type: "video" },
+        { title: "Organic Fertilizers", duration: "15:00", type: "reading" },
+        { title: "Nutrient Quiz", duration: "12:00", type: "quiz" },
+      ]},
+      { title: "Harvesting & Processing", duration: "1h", lessons: [
+        { title: "Harvest Timing", duration: "18:00", type: "video" },
+        { title: "Post-Harvest Handling", duration: "22:00", type: "video" },
+        { title: "Final Assessment", duration: "20:00", type: "quiz" },
+      ]},
+    ],
     reviews: [
-      { name: "Pedro G.", rating: 5, comment: "Very practical knowledge. Applied it to our farm immediately." },
-      { name: "Maria C.", rating: 4, comment: "Great overview of sustainable farming methods." },
-      { name: "Carlos A.", rating: 5, comment: "Juan's expertise really shows. Excellent course!" },
+      {
+        name: "Pedro G.",
+        rating: 5,
+        comment: "Very practical knowledge. Applied it to our farm immediately.",
+      },
+      {
+        name: "Maria C.",
+        rating: 4,
+        comment: "Great overview of sustainable farming methods.",
+      },
+      {
+        name: "Carlos A.",
+        rating: 5,
+        comment: "Juan's expertise really shows. Excellent course!",
+      },
     ],
   },
   "4": {
+    id: 4,
+    title: "Hablon Weaving: Traditional Textile Art",
+    instructor: "Lola Perla",
+    instructorBio:
+      "Lola Perla has been weaving hablon for over 50 years, preserving this Ilonggo art form.",
+    image: craftsImage,
     rating: 4.9,
     students: 320,
     duration: "10 hours",
+    category: "Craftsmanship",
+    price: "₱1,799",
+    description: "Master the ancient art of Ilonggo hablon weaving.",
+    longDescription:
+      "Learn the traditional art of hablon weaving from a master artisan. This course covers everything from setting up a loom to creating intricate patterns that have been passed down through generations of Ilonggo weavers.",
     objectives: [
       "Set up and operate a traditional weaving loom",
       "Create basic to intermediate hablon patterns",
@@ -138,14 +323,63 @@ const staticMetaById: Record<string, StaticCourseMeta> = {
       "Source and prepare natural fibers",
       "Complete a finished hablon textile product",
     ],
+    modules: [
+      { title: "History of Hablon Weaving", duration: "45m", lessons: [
+        { title: "Origins of Hablon", duration: "15:00", type: "video" },
+        { title: "Ilonggo Weaving Traditions", duration: "18:00", type: "video" },
+        { title: "Cultural Significance Quiz", duration: "12:00", type: "quiz" },
+      ]},
+      { title: "Loom Setup & Basics", duration: "2h 30m", lessons: [
+        { title: "Parts of the Loom", duration: "20:00", type: "video" },
+        { title: "Setting Up Your Loom", duration: "28:00", type: "video" },
+        { title: "Warp Preparation", duration: "25:00", type: "video" },
+        { title: "Threading Guide", duration: "20:00", type: "reading" },
+        { title: "Basic Weaving Motion", duration: "22:00", type: "video" },
+        { title: "Loom Basics Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Traditional Patterns", duration: "3h", lessons: [
+        { title: "Basic Stripes", duration: "25:00", type: "video" },
+        { title: "Check Patterns", duration: "22:00", type: "video" },
+        { title: "Geometric Designs", duration: "28:00", type: "video" },
+        { title: "Pattern Reading Guide", duration: "18:00", type: "reading" },
+        { title: "Color Theory for Weaving", duration: "20:00", type: "video" },
+        { title: "Creating Your Own Pattern", duration: "25:00", type: "video" },
+        { title: "Traditional Motifs", duration: "22:00", type: "video" },
+        { title: "Patterns Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Advanced Techniques", duration: "2h 15m", lessons: [
+        { title: "Complex Pattern Weaving", duration: "30:00", type: "video" },
+        { title: "Multi-color Threading", duration: "25:00", type: "video" },
+        { title: "Tension Control", duration: "20:00", type: "video" },
+        { title: "Troubleshooting Guide", duration: "15:00", type: "reading" },
+        { title: "Advanced Quiz", duration: "15:00", type: "quiz" },
+      ]},
+      { title: "Finishing & Care", duration: "1h 30m", lessons: [
+        { title: "Removing from Loom", duration: "18:00", type: "video" },
+        { title: "Finishing Edges", duration: "22:00", type: "video" },
+        { title: "Care Instructions", duration: "15:00", type: "reading" },
+        { title: "Final Project Assessment", duration: "20:00", type: "quiz" },
+      ]},
+    ],
     reviews: [
-      { name: "Elena R.", rating: 5, comment: "Lola Perla is a treasure! So grateful for this course." },
-      { name: "James L.", rating: 5, comment: "Finally learning this beautiful art. Thank you!" },
-      { name: "Rosa M.", rating: 5, comment: "Preserving our heritage one weave at a time." },
+      {
+        name: "Elena R.",
+        rating: 5,
+        comment: "Lola Perla is a treasure! So grateful for this course.",
+      },
+      {
+        name: "James L.",
+        rating: 5,
+        comment: "Finally learning this beautiful art. Thank you!",
+      },
+      {
+        name: "Rosa M.",
+        rating: 5,
+        comment: "Preserving our heritage one weave at a time.",
+      },
     ],
   },
 };
-
 
 const CoursePreview = () => {
   const { id } = useParams();
@@ -173,6 +407,8 @@ const CoursePreview = () => {
     fetchCourse();
   }, [id]);
 
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -187,66 +423,38 @@ const CoursePreview = () => {
     );
   }
 
-const numericId = id ?? "1";
+  const numericId = id ?? "1";
 
-const db = dbCourses?.find((c) => String(c.course_id) === numericId);
+  // base static course (keeps objectives/modules/reviews/etc.)
+  const staticCourse = coursesData[numericId] || coursesData["1"];
 
-if (!db) {
-  // simple fallback if course not found
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-16 lg:pt-20">
-        <p className="container mx-auto px-4 py-12 text-red-500">
-          {error ?? "Course not found"}
-        </p>
-      </main>
-      <Footer />
-    </div>
-  );
-}
+  // if DB data exists, overlay the DB values on the static course
+  let course = staticCourse;
 
-// ✅ pull static extras (objectives, reviews, rating, students, duration)
-const staticMeta =
-  staticMetaById[numericId] ??
-  {
-    rating: 4.5,
-    students: 0,
-    duration: "Self-paced",
-    objectives: [],
-    reviews: [],
-  };
-
-// ✅ final course object used by JSX below
-const course = {
-  id: db.course_id,
-  title: db.course_title,
-  instructor: db.instructor_name ?? "Unknown Instructor",
-  instructorBio: db.instructor_bio ?? "",
-  image: db.course_thumbnail_url ?? tourismImage, // fallback image
-  instructorImage: db.instructor_image_url ?? undefined,
-  instructorTitle: db.instructor_title ?? undefined,
-  rating: staticMeta.rating,
-  students: staticMeta.students,
-  duration: staticMeta.duration,
-  category: db.course_category ?? "General",
-  price: `₱${db.course_price.toLocaleString()}`,
-  description:
-    db.course_sub_description ?? db.course_description ?? "",
-  longDescription: db.course_description ?? "",
-  objectives: staticMeta.objectives,
-  modules: (db.course_contents ?? []).map((content) => ({
-    title: content.course_content_title,
-    duration: content.course_content_length ?? "",
-    lessons: (content.lessons ?? []).map((lesson) => ({
-      title: lesson.lesson_title,
-      duration: lesson.lesson_duration ?? "",
-      type: (lesson.lesson_type ?? "video") as Lesson["type"],
-    })),
-  })),
-  reviews: staticMeta.reviews,
-};
-
+  if (dbCourses) {
+    const db = dbCourses.find((c) => String(c.course_id) === numericId);
+    if (db) {
+      course = {
+        ...staticCourse,
+        title: db.course_title,
+        description:
+          db.course_sub_description ??
+          db.course_description ??
+          staticCourse.description,
+        longDescription:
+          db.course_description ?? staticCourse.longDescription,
+        category: db.course_category ?? staticCourse.category,
+        instructor: db.instructor_name ?? staticCourse.instructor,
+        instructorBio: db.instructor_bio ?? staticCourse.instructorBio,
+        price: `₱${db.course_price.toLocaleString()}`,
+        image: db.course_thumbnail_url ?? staticCourse.image,
+        instructorImage:
+          db.instructor_image_url ?? staticCourse.instructorImage,
+        instructorTitle:
+          db.instructor_title ?? staticCourse.instructorTitle, // ✅ overlay title
+      };
+    }
+  }
 
 
 
@@ -420,25 +628,26 @@ const course = {
                             <AccordionContent className="px-4 pb-4">
                                 <div className="space-y-2 pt-2 border-t border-border">
                                   {module.lessons.map((lesson, lessonIndex) => (
-                                    <div
-                                      key={lessonIndex}
-                                      className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors"
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        {lesson.type === 'video' && (
-                                          <PlayCircle className="w-4 h-4 text-primary" />
-                                        )}
-                                        {lesson.type === 'reading' && (
-                                          <FileText className="w-4 h-4 text-secondary" />
-                                        )}
-                                        {lesson.type === 'quiz' && (
-                                          <HelpCircle className="w-4 h-4 text-accent-foreground" />
-                                        )}
-                                        <span className="text-foreground text-sm">{lesson.title}</span>
-                                      </div>
-                                      <span className="text-muted-foreground text-sm">{lesson.duration}</span>
-                                    </div>
-                                  ))}
+                                      <Link
+                                        key={lessonIndex}
+                                        to={`/course/${id}/lesson/${index}-${lessonIndex}`}
+                                        className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          {lesson.type === 'video' && (
+                                            <PlayCircle className="w-4 h-4 text-primary" />
+                                          )}
+                                          {lesson.type === 'reading' && (
+                                            <FileText className="w-4 h-4 text-secondary" />
+                                          )}
+                                          {lesson.type === 'quiz' && (
+                                            <HelpCircle className="w-4 h-4 text-accent-foreground" />
+                                          )}
+                                          <span className="text-foreground text-sm hover:text-primary transition-colors">{lesson.title}</span>
+                                        </div>
+                                        <span className="text-muted-foreground text-sm">{lesson.duration}</span>
+                                      </Link>
+                                    ))}
                                 </div>
                               </AccordionContent>
                            </AccordionItem>
