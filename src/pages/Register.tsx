@@ -63,7 +63,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // API call using the absolute path
+      // 2. API Call
       const response = await fetch(`${API_BASE_URL}/api/auth/register.php`, {
         method: "POST",
         headers: {
@@ -77,37 +77,47 @@ const Register = () => {
         }),
       });
 
-      // 2. Handle API Response
-      if (response.ok) {
-        // Success (HTTP 201 Created or 200 OK)
+      // 3. Handle API Response (CRITICAL FIX)
+      if (response.status === 201) {
+        // HTTP 201 Created (Successful Registration)
         toast({
           title: "Registration Successful! 🎉",
           description: "Your account has been created. You can now sign in.",
         });
-
         navigate("/login");
-      } else {
-        // Error (HTTP 4xx or 5xx)
-        let errorTitle = "Registration Failed";
-        let errorMessage = "An unexpected error occurred during registration.";
+
+      } else if (response.status === 409) {
+        // ✅ FIX: DUPLICATE EMAIL ERROR (409 Conflict)
+        // Set the desired user-friendly message
+        const FRIENDLY_MESSAGE = "This email is already in use. Please sign in or use a different email.";
+        let errorMessage = FRIENDLY_MESSAGE;
         
         try {
+            // Attempt to read the message from the server's JSON response
             const errorData = await response.json();
-            
-            if (response.status === 409) {
-                // FIX: Explicitly handle 409 Conflict from PHP (Duplicate email)
-                errorTitle = "Email Already Registered";
-                errorMessage = errorData.message || "This email is already in use. Please sign in or use a different email.";
-            } else if (errorData.message) {
-                // Use the error message sent by PHP for other errors (e.g., 400 Bad Request)
-                errorMessage = errorData.message;
-            } else if (response.status === 500) {
-                 errorTitle = "Server Error";
-                 errorMessage = "Internal Server Error. Please check XAMPP logs.";
-            }
-            
+            // If the PHP message is present, use it. Otherwise, use our friendly fallback.
+            // NOTE: The PHP sends "This email is already registered."
+            // We use our hardcoded message if the server's message is generic.
+            errorMessage = errorData.message ? FRIENDLY_MESSAGE : errorMessage; 
         } catch (e) {
-            // Server error but response body wasn't JSON (e.g., PHP error text)
+            // If JSON parsing fails, stick with the friendly hardcoded message
+        }
+        
+        toast({
+          title: "Email Already Registered",
+          description: errorMessage,
+          variant: "destructive",
+        });
+
+      } else {
+        // ALL OTHER ERRORS (400 Bad Request, 500 Internal Server Error, etc.)
+        let errorMessage = "An unexpected error occurred during registration.";
+        let errorTitle = "Registration Failed";
+
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+        } catch (e) {
             if (response.status === 500) {
                  errorTitle = "Server Error";
                  errorMessage = "Internal Server Error. Please check XAMPP logs.";
@@ -120,6 +130,7 @@ const Register = () => {
           variant: "destructive",
         });
       }
+
     } catch (error) {
       console.error("Registration error:", error);
       toast({
