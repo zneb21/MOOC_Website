@@ -419,26 +419,32 @@ const course = {
                               </AccordionTrigger>
                             <AccordionContent className="px-4 pb-4">
                                 <div className="space-y-2 pt-2 border-t border-border">
-                                  {module.lessons.map((lesson, lessonIndex) => (
-                                    <div
-                                      key={lessonIndex}
-                                      className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors"
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        {lesson.type === 'video' && (
-                                          <PlayCircle className="w-4 h-4 text-primary" />
-                                        )}
-                                        {lesson.type === 'reading' && (
-                                          <FileText className="w-4 h-4 text-secondary" />
-                                        )}
-                                        {lesson.type === 'quiz' && (
-                                          <HelpCircle className="w-4 h-4 text-accent-foreground" />
-                                        )}
-                                        <span className="text-foreground text-sm">{lesson.title}</span>
-                                      </div>
-                                      <span className="text-muted-foreground text-sm">{lesson.duration}</span>
+                                {module.lessons.map((lesson, lessonIndex) => (
+                                  <Link
+                                    key={lessonIndex}
+                                    to={`/course/${id}/lesson/${index}-${lessonIndex}`}
+                                    className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      {lesson.type === 'video' && (
+                                        <PlayCircle className="w-4 h-4 text-primary" />
+                                      )}
+                                      {lesson.type === 'reading' && (
+                                        <FileText className="w-4 h-4 text-secondary" />
+                                      )}
+                                      {lesson.type === 'quiz' && (
+                                        <HelpCircle className="w-4 h-4 text-accent-foreground" />
+                                      )}
+                                      <span className="text-foreground text-sm hover:text-primary transition-colors">
+                                        {lesson.title}
+                                      </span>
                                     </div>
-                                  ))}
+                                    <span className="text-muted-foreground text-sm">
+                                      {lesson.duration}
+                                    </span>
+                                  </Link>
+                                ))}
+
                                 </div>
                               </AccordionContent>
                            </AccordionItem>

@@ -10,6 +10,8 @@ import CoursePreview from "./pages/CoursePreview";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
+import LessonView from "./pages/LessonView"; // ✅ add import
+
 
 const queryClient = new QueryClient();
 
@@ -24,11 +26,17 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/:id" element={<CoursePreview />} />
+
+          {/* ✅ NEW: Lesson viewer route */}
+          <Route path="/course/:id/lesson/:lessonSlug" element={<LessonView />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* MUST stay last */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
