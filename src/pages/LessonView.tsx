@@ -279,15 +279,18 @@ export default function UdemyLayout() {
               <div className="text-sm font-medium">What you'll learn</div>
               <ul className="mt-2 text-sm text-slate-600 space-y-2">
                 <li>Key context and background</li>
-                <li>Practical tips to explore</li>
-                <li>Short quiz to check knowledge</li>
+                <li>PSi jake occena kag carlos</li>
+                <li>nga mga mamaw sa prog :o </li>
               </ul>
 
               <div className="mt-auto">
                 <div className="text-xs text-slate-500 mb-2">Jump to lesson</div>
                 <div className="grid grid-cols-1 gap-2">
                   {courseData.modules.flatMap((m, mi) => m.lessons.map((l, li) => ({ mi, li, title: l.title }))).slice(0, 6).map((item, idx) => (
-                    <button key={idx} onClick={() => { setModuleIndex(item.mi); setLessonIndex(item.li); }} className={`w-full text-left px-3 py-2 rounded-md text-sm hover:bg-slate-100 transition-colors duration-200 rounded-md ${moduleIndex === item.mi && lessonIndex === item.li ? 'bg-primary text-white' : 'bg-background text-slate-700'}`}>
+                    <button key={idx} onClick={() => { setModuleIndex(item.mi); setLessonIndex(item.li); }} className={`flex items-center justify-between py-1.5 px-2 rounded text-left transition-colors
+                                  ${moduleIndex === item.mi && lessonIndex === item.li
+                                    ? "bg-primary text-white"
+                                    : "bg-transparent text-slate-700 hover:bg-slate-100"}`}>
                       {item.title}
                     </button>
                   ))}
