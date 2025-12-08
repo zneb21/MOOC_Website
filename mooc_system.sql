@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 06, 2025 at 08:49 PM
+-- Generation Time: Dec 08, 2025 at 06:40 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -30,11 +30,20 @@ SET time_zone = "+00:00";
 CREATE TABLE `chat_history` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `module_id` int(11) DEFAULT NULL,
   `role` enum('user','assistant') NOT NULL,
   `message` text NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chat_history`
+--
+
+INSERT INTO `chat_history` (`id`, `user_id`, `role`, `message`, `created_at`) VALUES
+(3, 9, 'user', 'hello', '2025-12-08 17:21:31'),
+(4, 9, 'assistant', 'Hello! Welcome to our lesson about Iloilo. How can I help you today?', '2025-12-08 17:21:36'),
+(5, 9, 'user', 'hello', '2025-12-08 17:35:19'),
+(6, 9, 'assistant', 'Hello there! Welcome again to our lesson about Iloilo.\n\nIs there anything you\'d like to know or explore about Iloilo right now? We can talk about its famous **La Paz Batchoy**, beautiful **old churches**, or even just the meaning of \"Iloilo\"!', '2025-12-08 17:35:24');
 
 -- --------------------------------------------------------
 
@@ -107,8 +116,18 @@ CREATE TABLE `users` (
   `name` varchar(100) NOT NULL,
   `email` varchar(150) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `role` enum('learner','instructor') NOT NULL DEFAULT 'learner',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `created_at`) VALUES
+(9, 'mist', 'glass418cloudy@gmail.com', '$2y$10$7A3U.m686.6qdeub6thU8O8NiSG6MSSRHPf3.JXtWoXT4XgizaLPu', 'learner', '2025-12-07 20:40:37'),
+(18, 'nigga doe', 'ckaristoki@gmail.com', '$2y$10$uHlc5raOpHcboFE/pKNhkuBBrn.dBHmBzehTNI8gm7v0kZqub2onm', 'learner', '2025-12-08 14:33:19'),
+(19, 'nigga doe', 'ckaristoki@outlook.com', '$2y$10$7JRoDx9hzOWjNI.yj1SBZuB1AuxCmdEtYjtQcfXf8f54EdGmZJF8O', 'learner', '2025-12-08 15:54:05');
 
 --
 -- Indexes for dumped tables
@@ -119,8 +138,7 @@ CREATE TABLE `users` (
 --
 ALTER TABLE `chat_history`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `module_id` (`module_id`);
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `courses`
@@ -167,7 +185,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `chat_history`
 --
 ALTER TABLE `chat_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `courses`
@@ -197,7 +215,7 @@ ALTER TABLE `progress`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- Constraints for dumped tables
@@ -207,8 +225,7 @@ ALTER TABLE `users`
 -- Constraints for table `chat_history`
 --
 ALTER TABLE `chat_history`
-  ADD CONSTRAINT `chat_history_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `chat_history_ibfk_2` FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `chat_history_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `enrollments`

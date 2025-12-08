@@ -19,7 +19,7 @@ DB_CONFIG = {
     "host": "localhost",
     "user": "root",
     "password": "",
-    "database": "testing",
+    "database": "mooc_system",
     "port": 3306,
 }
 
@@ -35,6 +35,7 @@ def get_db():
     return mysql.connector.connect(**DB_CONFIG)
 
 def save_message(user_id, role, message):
+    """Saves a chat message, now only requiring user_id."""
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
@@ -46,10 +47,7 @@ def save_message(user_id, role, message):
     db.close()
 
 def load_chat_summary(user_id):
-    """
-    For privacy: Instead of sending all raw messages,
-    we retrieve last 10 user/assistant messages but summarize them.
-    """
+    """Retrieves history for the specific user_id."""
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
@@ -64,6 +62,7 @@ def load_chat_summary(user_id):
         return "No previous conversation."
 
     summary = []
+    # Display in chronological order
     for role, msg in reversed(rows):
         short = msg[:120].replace("\n", " ")  # avoid long/sensitive data
         summary.append(f"{role}: {short}")
@@ -77,6 +76,7 @@ def load_chat_summary(user_id):
 def parse_gemini_response(resp):
     """Safely extract the best output text from different possible Gemini SDK/REST formats."""
     # SDK (resp.text usually exists)
+    # The existing logic is retained for safe parsing
     if hasattr(resp, "text") and resp.text:
         return resp.text
 
@@ -114,7 +114,14 @@ def call_gemini_rest(prompt):
     data = resp.json()
 
     if "candidates" in data:
-        return data["candidates"][0].get("content", "")
+        # Assuming the first candidate's text is the desired response
+        if 'content' in data["candidates"][0]:
+            content = data["candidates"][0]['content']
+            if 'parts' in content and content['parts']:
+                return content['parts'][0].get('text', str(content))
+        # Fallback for simpler REST structure if available
+        return data["candidates"][0].get("output", str(data))
+        
     return str(data)
 
 
@@ -128,12 +135,17 @@ def index():
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.json
-    user_id = data.get("user_id", 1)  # simple default user
+    # Require a valid user_id from frontend
+    user_id = data.get("user_id")
+    if not isinstance(user_id, int) or user_id <= 0:
+        return jsonify({"reply": "Error: Invalid user_id provided."}), 400
+
     user_msg = data.get("message", "")
     lesson_title = data.get("lesson_title", "MOOC Lesson")
     language = data.get("language", "en")
 
     # Save user message
+    # History is now correctly tied to the user_id
     save_message(user_id, "user", user_msg)
 
     # Load summarized history (privacy friendly)
