@@ -7,6 +7,7 @@ import { User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import AvatarSelector, { AVATAR_OPTIONS } from "./AvatarSelector";
+import ThemeToggle from "./ThemeToggle";
 
 const ProfileForm = () => {
   const { user, updateProfile } = useAuth();
@@ -123,6 +124,9 @@ const ProfileForm = () => {
             </span>
           </div>
         </div>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         <Button type="submit" variant="teal" disabled={isLoading}>
           {isLoading ? "Saving..." : "Save Changes"}
