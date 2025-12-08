@@ -84,11 +84,11 @@ export default function UdemyLayout() {
   const [chatInput, setChatInput] = useState("");
   const isSendingRef = useRef(false);
 
-  // Typing indicator OFF
+  // Typing indicator
   const [isTyping, setIsTyping] = useState(false);
 
   // --------------------------
-  // ✅ sendChat()
+  // ✅ sendChat() - Fixed user_id parsing
   // --------------------------
   const sendChat = async () => {
     if (!chatInput.trim() || isSendingRef.current) return;
@@ -101,8 +101,11 @@ export default function UdemyLayout() {
     setIsTyping(true);
 
     try {
+      const rawUserId = localStorage.getItem("user_id");
+      const userId = rawUserId ? parseInt(rawUserId, 10) : 9; 
+
       const res = await axios.post("http://127.0.0.1:5000/chat", {
-        user_id: 1,
+        user_id: userId,
         message: userMessage,
         lesson_title: currentLesson.title,
         language: "en",
@@ -265,6 +268,7 @@ export default function UdemyLayout() {
 
                   {/* Chat messages */}
                   <div className="flex-1 overflow-y-auto mb-2 pr-1">
+
                     {chatMessages.map((msg, idx) => (
                       
                       msg.sender === "assistant" ? (
@@ -293,6 +297,24 @@ export default function UdemyLayout() {
                       )
 
                     ))}
+
+                    {/* ⭐ TYPING INDICATOR */}
+                    {isTyping && (
+                      <div className="flex items-start gap-2 mb-2 max-w-[90%]">
+                        <img
+                          src="/assistant.jpg"
+                          alt="AI Avatar"
+                          className="w-8 h-8 rounded-full object-cover select-none"
+                        />
+
+                        <div className="px-3 py-2 rounded-md bg-slate-200 text-slate-600 text-xs flex items-center gap-1">
+                          <span className="animate-bounce">●</span>
+                          <span className="animate-bounce delay-150">●</span>
+                          <span className="animate-bounce delay-300">●</span>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
 
                   <div className="text-xs text-slate-600 mb-2">Type a question about the lesson.</div>
