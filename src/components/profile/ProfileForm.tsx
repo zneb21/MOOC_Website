@@ -3,17 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { User, Camera } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import AvatarSelector, { AVATAR_OPTIONS } from "./AvatarSelector";
 
 const ProfileForm = () => {
   const { user, updateProfile } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || "");
-  const [selectedAvatarId, setSelectedAvatarId] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,18 +55,17 @@ const ProfileForm = () => {
         <div className="flex items-center gap-4">
           <Avatar className="w-20 h-20">
             <AvatarImage src={user?.avatarUrl} />
-            <AvatarFallback className={selectedAvatarId ? AVATAR_OPTIONS.find(a => a.id === selectedAvatarId)?.color : "bg-primary"}>
+            <AvatarFallback className="bg-primary text-primary-foreground text-xl">
               {user?.fullName ? getInitials(user.fullName) : <User className="w-8 h-8" />}
             </AvatarFallback>
           </Avatar>
           <div>
-            <AvatarSelector
-              selectedAvatarId={selectedAvatarId}
-              onSelectAvatar={setSelectedAvatarId}
-              userFullName={user?.fullName}
-            />
+            <Button type="button" variant="outline" size="sm" disabled>
+              <Camera className="w-4 h-4 mr-2" />
+              Upload Photo
+            </Button>
             <p className="text-xs text-muted-foreground mt-1">
-              Select from pre-made avatars
+              Photo upload coming soon
             </p>
           </div>
         </div>
