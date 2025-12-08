@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GraduationCap, Eye, EyeOff, User, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 // --- ABSOLUTE URL: CRITICAL FIX for XAMPP connection ---
@@ -19,6 +20,7 @@ const isValidEmail = (email: string) => {
 
 const Register = () => {
   const { toast } = useToast();
+  const { register, user } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -30,6 +32,13 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -84,7 +93,7 @@ const Register = () => {
           title: "Registration Successful! 🎉",
           description: "Your account has been created. You can now sign in.",
         });
-        navigate("/login");
+        navigate("/dashboard");
 
       } else if (response.status === 409) {
         // ✅ FIX: DUPLICATE EMAIL ERROR (409 Conflict)

@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; 
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- ABSOLUTE URL: CRITICAL FIX for XAMPP connection ---
 const API_BASE_URL = "http://localhost/mooc_api"; 
@@ -30,6 +31,7 @@ interface LoginResponse {
 
 const Login = () => {
   const { toast } = useToast();
+  const { login, user } = useAuth();
   const navigate = useNavigate(); 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +39,13 @@ const Login = () => {
     email: "",
     password: "",
   });
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -49,7 +58,9 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!isValidEmail(formData.email)) {
+    const { error } = await login(formData.email, formData.password);
+    
+    if (error) {
       setIsLoading(false);
       toast({
         title: "Validation Error",

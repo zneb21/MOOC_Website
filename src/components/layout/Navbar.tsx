@@ -1,8 +1,20 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X, GraduationCap, User, LayoutDashboard, BookOpen, Settings, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -13,6 +25,28 @@ const navLinks = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  //FOR USER DASHBOARD CHUCHU
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Signed out",
+      description: "You have been signed out successfully.",
+    });
+    navigate("/");
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -48,14 +82,65 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Auth Section */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/login">Log In</Link>
-            </Button>
-            <Button variant="teal" asChild>
-              <Link to="/register">Sign Up</Link>
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 px-2">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={user.avatarUrl} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                        {getInitials(user.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium text-foreground max-w-[120px] truncate">
+                      {user.fullName}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium text-foreground">{user.fullName}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer">
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/courses" className="cursor-pointer">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      My Courses
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Profile Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/login">Log In</Link>
+                </Button>
+                <Button variant="teal" asChild>
+                  <Link to="/register">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
