@@ -17,10 +17,10 @@ const courseData = {
 
 export default function UdemyLayout() {
   const NAV_HEIGHT = 64;
-  const [sidebarOpen, setSidebarOpen] = useState(true); // A: always-visible on desktop
+  const [sidebarOpen, setSidebarOpen] = useState(true); 
   const [sidebarTab, setSidebarTab] = useState("content");
   const [activeModule, setActiveModule] = useState<number | null>(null);
-  const [moduleView, setModuleView] = useState<number | null>(null); // when viewing module details inside sidebar
+  const [moduleView, setModuleView] = useState<number | null>(null);
 
   // Lesson state
   const [moduleIndex, setModuleIndex] = useState(0);
@@ -34,8 +34,6 @@ export default function UdemyLayout() {
   const currentModule = courseData.modules[moduleIndex];
   const currentLesson = currentModule.lessons[lessonIndex];
 
-  // no vertical/horizontal scroll on desktop: we set fixed, responsive heights and use modal/detail panels to avoid overflow
-  // keyboard shortcuts: left/right to navigate, m to toggle sidebar
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") next();
@@ -74,21 +72,23 @@ export default function UdemyLayout() {
     });
   };
 
-  // For accessibility focus
   const chatInputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     if (sidebarTab === "chat") chatInputRef.current?.focus();
   }, [sidebarTab]);
 
   // --------------------------
-  // ✅ ADDED AI CHAT STATES
+  // ✅ AI CHAT STATES
   // --------------------------
   const [chatMessages, setChatMessages] = useState<{ sender: string; text: string }[]>([]);
   const [chatInput, setChatInput] = useState("");
   const isSendingRef = useRef(false);
 
+  // Typing indicator OFF
+  const [isTyping, setIsTyping] = useState(false);
+
   // --------------------------
-  // ✅ ADDED sendChat() FUNCTION
+  // ✅ sendChat()
   // --------------------------
   const sendChat = async () => {
     if (!chatInput.trim() || isSendingRef.current) return;
@@ -97,6 +97,8 @@ export default function UdemyLayout() {
     const userMessage = chatInput.trim();
     setChatMessages(prev => [...prev, { sender: "user", text: userMessage }]);
     setChatInput("");
+
+    setIsTyping(true);
 
     try {
       const res = await axios.post("http://127.0.0.1:5000/chat", {
@@ -108,23 +110,23 @@ export default function UdemyLayout() {
 
       const reply = res.data.reply || "No response";
       setChatMessages(prev => [...prev, { sender: "assistant", text: reply }]);
+      setIsTyping(false);
 
     } catch (err) {
       setChatMessages(prev => [
         ...prev,
         { sender: "assistant", text: "Error: unable to reach AI server." }
       ]);
+      setIsTyping(false);
     }
 
     isSendingRef.current = false;
   };
 
-  // Responsive: on very small screens, sidebar becomes overlay and can scroll internally. Desktop: fixed, no scroll.
-
   return (
     <div className="w-full h-screen bg-background text-slate-900 flex flex-col overflow-hidden">
       
-      {/* Top Navigation - Sticky */}
+      {/* Top Navigation */}
       <nav className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0 z-50">
         <div className="flex items-center gap-4">
           <button
@@ -147,9 +149,9 @@ export default function UdemyLayout() {
         </div>
       </nav>
 
-      {/* Main Content Area Below Nav */}
+      {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        
+
       {/* Sidebar */}
       <aside
         className={`bg-white border-r border-slate-200 z-40 transition-all duration-300 flex-shrink-0 font-sans
@@ -193,7 +195,7 @@ export default function UdemyLayout() {
               <div className="text-xs text-slate-600 mt-1">{completedCount}/{totalLessons} lessons</div>
             </div>
 
-            {/* condensed modules list */}
+            {/* content tab */}
             {sidebarTab === 'content' && (
               <div className="flex-1 flex flex-col gap-2" style={{ minHeight: 0 }}>
                 <div className="text-sm font-semibold text-slate-700 px-1">Modules</div>
@@ -247,42 +249,55 @@ export default function UdemyLayout() {
                   ))}
                 </Accordion>
 
-                {/* small footer */}
+                {/* footer */}
                 <div className="mt-auto px-1 py-2">
                   <button onClick={() => { setModuleIndex(0); setLessonIndex(0); }} className="w-full py-2 rounded-md bg-primary text-white text-sm">Start Course</button>
                 </div>
               </div>
             )}
 
-            {/* Chat tab compact UI  */}
+            {/* Chat Tab */}
             {sidebarTab === 'chat' && (
               <div className="flex-1 flex flex-col gap-2" style={{ minHeight: 0 }}>
                 <div className="text-sm font-semibold text-slate-700">Assistant</div>
 
                 <div className="flex-1 rounded-md bg-background pb-3 flex flex-col justify-end" style={{ minHeight: 0 }}>
 
-                  {/* ------------------------------ */}
-                  {/* ✅ CHAT MESSAGES ADDED HERE     */}
-                  {/* ------------------------------ */}
+                  {/* Chat messages */}
                   <div className="flex-1 overflow-y-auto mb-2 pr-1">
                     {chatMessages.map((msg, idx) => (
-                      <div
-                        key={idx}
-                        className={`text-xs mb-1 p-2 rounded-md max-w-[85%] ${
-                          msg.sender === "user"
-                            ? "bg-primary text-white ml-auto"
-                            : "bg-slate-200 text-slate-800"
-                        }`}
-                      >
-                        {msg.text}
-                      </div>
+                      
+                      msg.sender === "assistant" ? (
+                        <div key={idx} className="flex items-start gap-2 mb-2 max-w-[90%]">
+                          
+                          {/* Avatar */}
+                          <img
+                            src="/assistant.jpg"
+                            alt="AI Avatar"
+                            className="w-8 h-8 rounded-full object-cover select-none"
+                          />
+
+                          {/* Assistant bubble */}
+                          <div className="text-xs p-2 rounded-md bg-slate-200 text-slate-800">
+                            {msg.text}
+                          </div>
+
+                        </div>
+                      ) : (
+                        <div
+                          key={idx}
+                          className="text-xs mb-2 p-2 rounded-md max-w-[85%] bg-primary text-white ml-auto"
+                        >
+                          {msg.text}
+                        </div>
+                      )
+
                     ))}
                   </div>
 
                   <div className="text-xs text-slate-600 mb-2">Type a question about the lesson.</div>
                   <div className="flex gap-2">
 
-                    {/* UPDATED INPUT */}
                     <input
                       ref={chatInputRef}
                       type="text"
@@ -293,7 +308,6 @@ export default function UdemyLayout() {
                       className="flex-1 rounded-md border border-slate-200 py-1.5 text-sm mb-3"
                     />
 
-                    {/* UPDATED BUTTON */}
                     <Button size="sm" onClick={sendChat}>
                       Send
                     </Button>
@@ -312,9 +326,8 @@ export default function UdemyLayout() {
         </div>
       </aside>
 
-      {/* Main area */}
+      {/* Main player */}
       <main className="flex-1 flex flex-col min-h-0">
-
         <div className="flex-1 flex" style={{ minHeight: 0 }}>
 
           {/* Player */}
