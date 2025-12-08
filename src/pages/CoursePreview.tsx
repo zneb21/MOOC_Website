@@ -164,6 +164,7 @@ const CoursePreview = () => {
   const [showReviewComposer, setShowReviewComposer] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
   const [isLoadingReview, setIsLoadingReview] = useState(false);
+  const [userReviewIds, setUserReviewIds] = useState<Set<string>>(new Set());
 
   // 🔹 Fetch all courses from API, like your DB-only version
   useEffect(() => {
@@ -234,6 +235,7 @@ const CoursePreview = () => {
           userId: user.id,
         };
         setAllReviews((prevReviews) => [newReview, ...prevReviews]);
+        setUserReviewIds((prev) => new Set([...prev, newReview.id || ""]));
       }
       setShowReviewComposer(false);
     } catch (err) {
@@ -256,6 +258,11 @@ const CoursePreview = () => {
       setAllReviews((prevReviews) =>
         prevReviews.filter((review) => review.id !== reviewId)
       );
+      setUserReviewIds((prev) => {
+        const updated = new Set(prev);
+        updated.delete(reviewId);
+        return updated;
+      });
     } catch (err) {
       console.error("Error deleting review:", err);
       alert("Failed to delete review. Please try again.");
@@ -264,8 +271,9 @@ const CoursePreview = () => {
     }
   };
 
-  // Get current user's review
-  const currentUserReview = allReviews.find((review) => review.userId === user?.id);
+  // Get current user's reviews (multiple)
+  const currentUserReviews = allReviews.filter((review) => review.userId === user?.id);
+  const isEditingMode = editingReviewId !== null;
 
   if (loading) {
     return (
@@ -557,8 +565,8 @@ const course = {
                     Student Reviews
                   </h2>
 
-                  {/* Review Composer - Show if user logged in and not editing or create new */}
-                  {user && !editingReviewId && !showReviewComposer && !currentUserReview && (
+                  {/* Review Composer - Show if user logged in and not editing */}
+                  {user && !isEditingMode && !showReviewComposer && (
                     <div className="mb-6">
                       <Button
                         onClick={() => setShowReviewComposer(true)}
@@ -582,37 +590,43 @@ const course = {
                   )}
 
                   {/* Edit Mode for User's Review */}
-                  {editingReviewId && currentUserReview && (
+                  {isEditingMode && (
                     <div className="mb-6">
-                      <ReviewComposer
-                        onSubmit={handleSaveReview}
-                        onCancel={() => setEditingReviewId(null)}
-                        initialReview={currentUserReview}
-                        isLoading={isLoadingReview}
-                      />
+                      {allReviews.find((r) => r.id === editingReviewId) && (
+                        <ReviewComposer
+                          onSubmit={handleSaveReview}
+                          onCancel={() => setEditingReviewId(null)}
+                          initialReview={allReviews.find((r) => r.id === editingReviewId)}
+                          isLoading={isLoadingReview}
+                        />
+                      )}
                     </div>
                   )}
 
-                  {/* Current User's Review - Show if exists and not editing */}
-                  {currentUserReview && !editingReviewId && (
-                    <div className="mb-6">
-                      <ReviewCard
-                        id={currentUserReview.id}
-                        name={currentUserReview.name}
-                        rating={currentUserReview.rating}
-                        comment={currentUserReview.comment}
-                        isOwnReview={true}
-                        onEdit={() => setEditingReviewId(currentUserReview.id || null)}
-                        onDelete={() => handleDeleteReview(currentUserReview.id)}
-                        isDeleting={deletingReviewId === currentUserReview.id}
-                      />
+                  {/* Current User's Reviews - Show all if exists and not editing */}
+                  {currentUserReviews.length > 0 && !isEditingMode && (
+                    <div className="mb-6 space-y-4 pb-4 border-b border-border">
+                      <p className="text-sm font-semibold text-muted-foreground">Your Reviews</p>
+                      {currentUserReviews.map((review) => (
+                        <ReviewCard
+                          key={review.id}
+                          id={review.id}
+                          name={review.name}
+                          rating={review.rating}
+                          comment={review.comment}
+                          isOwnReview={true}
+                          onEdit={() => setEditingReviewId(review.id || null)}
+                          onDelete={() => handleDeleteReview(review.id)}
+                          isDeleting={deletingReviewId === review.id}
+                        />
+                      ))}
                     </div>
                   )}
 
                   {/* Other Reviews */}
                   <div className="space-y-4">
                     {course.reviews
-                      .filter((review) => review.id !== currentUserReview?.id)
+                      .filter((review) => !currentUserReviews.find((ur) => ur.id === review.id))
                       .map((review) => (
                         <ReviewCard
                           key={review.id}
