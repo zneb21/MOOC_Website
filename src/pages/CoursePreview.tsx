@@ -5,6 +5,9 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Star, Clock, Users, PlayCircle, CheckCircle, Award, BookOpen, FileText, HelpCircle } from "lucide-react";
+import ReviewComposer, { ReviewData } from "@/components/ReviewComposer";
+import ReviewCard from "@/components/ReviewCard";
+import { useAuth } from "@/contexts/AuthContext";
 import tourismImage from "@/assets/course-tourism.jpg";
 import cookingImage from "@/assets/course-cooking.jpg";
 import agricultureImage from "@/assets/course-agriculture.jpg";
@@ -72,7 +75,7 @@ type StaticCourseMeta = {
   students: number;
   duration: string;
   objectives: string[];
-  reviews: { name: string; rating: number; comment: string }[];
+  reviews: { id?: string; name: string; rating: number; comment: string; userId?: string }[];
 };
 
 const staticMetaById: Record<string, StaticCourseMeta> = {
@@ -149,10 +152,18 @@ const staticMetaById: Record<string, StaticCourseMeta> = {
 
 const CoursePreview = () => {
   const { id } = useParams();
+  const { user } = useAuth();
 
   const [dbCourses, setDbCourses] = useState<CourseFromApi[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Review management state
+  const [allReviews, setAllReviews] = useState<Array<{ id?: string; name: string; rating: number; comment: string; userId?: string }>>([]);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [showReviewComposer, setShowReviewComposer] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
+  const [isLoadingReview, setIsLoadingReview] = useState(false);
 
   // 🔹 Fetch all courses from API, like your DB-only version
   useEffect(() => {
@@ -173,6 +184,89 @@ const CoursePreview = () => {
     fetchCourse();
   }, [id]);
 
+  // Initialize reviews from static data
+  useEffect(() => {
+    if (dbCourses && id) {
+      const numericId = String(id);
+      const staticMeta = staticMetaById[numericId];
+      if (staticMeta?.reviews) {
+        setAllReviews(staticMeta.reviews.map((review, idx) => ({
+          id: `review-${idx}`,
+          ...review,
+        })));
+      }
+    }
+  }, [dbCourses, id]);
+
+  // Handle adding or updating a review
+  const handleSaveReview = async (reviewData: ReviewData) => {
+    if (!user) {
+      alert("Please log in to post a review");
+      return;
+    }
+
+    setIsLoadingReview(true);
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      if (editingReviewId) {
+        // Update existing review
+        setAllReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.id === editingReviewId
+              ? {
+                  ...review,
+                  rating: reviewData.rating,
+                  comment: reviewData.comment,
+                }
+              : review
+          )
+        );
+        setEditingReviewId(null);
+      } else {
+        // Add new review
+        const newReview = {
+          id: `review-${Date.now()}`,
+          name: user.fullName || "Anonymous",
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+          userId: user.id,
+        };
+        setAllReviews((prevReviews) => [newReview, ...prevReviews]);
+      }
+      setShowReviewComposer(false);
+    } catch (err) {
+      console.error("Error saving review:", err);
+      alert("Failed to save review. Please try again.");
+    } finally {
+      setIsLoadingReview(false);
+    }
+  };
+
+  // Handle deleting a review
+  const handleDeleteReview = async (reviewId: string | undefined) => {
+    if (!reviewId) return;
+
+    setDeletingReviewId(reviewId);
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      setAllReviews((prevReviews) =>
+        prevReviews.filter((review) => review.id !== reviewId)
+      );
+    } catch (err) {
+      console.error("Error deleting review:", err);
+      alert("Failed to delete review. Please try again.");
+    } finally {
+      setDeletingReviewId(null);
+    }
+  };
+
+  // Get current user's review
+  const currentUserReview = allReviews.find((review) => review.userId === user?.id);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -186,6 +280,7 @@ const CoursePreview = () => {
       </div>
     );
   }
+
 
 const numericId = id ?? "1";
 
@@ -244,7 +339,7 @@ const course = {
       type: (lesson.lesson_type ?? "video") as Lesson["type"],
     })),
   })),
-  reviews: staticMeta.reviews,
+  reviews: allReviews,
 };
 
 
@@ -461,36 +556,81 @@ const course = {
                     <Star className="w-6 h-6 text-primary" />
                     Student Reviews
                   </h2>
-                  <div className="space-y-4">
-                    {course.reviews.map((review, index) => (
-                      <div
-                        key={index}
-                        className="bg-card rounded-xl p-5 shadow-soft"
+
+                  {/* Review Composer - Show if user logged in and not editing or create new */}
+                  {user && !editingReviewId && !showReviewComposer && !currentUserReview && (
+                    <div className="mb-6">
+                      <Button
+                        onClick={() => setShowReviewComposer(true)}
+                        variant="outline"
+                        className="w-full"
                       >
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                            <span className="text-primary-foreground font-semibold">
-                              {review.name.charAt(0)}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-semibold text-foreground">
-                              {review.name}
-                            </p>
-                            <div className="flex items-center gap-1">
-                              {[...Array(review.rating)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className="w-4 h-4 text-secondary fill-secondary"
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-muted-foreground">{review.comment}</p>
-                      </div>
-                    ))}
+                        Write a Review
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Review Composer Form */}
+                  {showReviewComposer && (
+                    <div className="mb-6">
+                      <ReviewComposer
+                        onSubmit={handleSaveReview}
+                        onCancel={() => setShowReviewComposer(false)}
+                        isLoading={isLoadingReview}
+                      />
+                    </div>
+                  )}
+
+                  {/* Edit Mode for User's Review */}
+                  {editingReviewId && currentUserReview && (
+                    <div className="mb-6">
+                      <ReviewComposer
+                        onSubmit={handleSaveReview}
+                        onCancel={() => setEditingReviewId(null)}
+                        initialReview={currentUserReview}
+                        isLoading={isLoadingReview}
+                      />
+                    </div>
+                  )}
+
+                  {/* Current User's Review - Show if exists and not editing */}
+                  {currentUserReview && !editingReviewId && (
+                    <div className="mb-6">
+                      <ReviewCard
+                        id={currentUserReview.id}
+                        name={currentUserReview.name}
+                        rating={currentUserReview.rating}
+                        comment={currentUserReview.comment}
+                        isOwnReview={true}
+                        onEdit={() => setEditingReviewId(currentUserReview.id || null)}
+                        onDelete={() => handleDeleteReview(currentUserReview.id)}
+                        isDeleting={deletingReviewId === currentUserReview.id}
+                      />
+                    </div>
+                  )}
+
+                  {/* Other Reviews */}
+                  <div className="space-y-4">
+                    {course.reviews
+                      .filter((review) => review.id !== currentUserReview?.id)
+                      .map((review) => (
+                        <ReviewCard
+                          key={review.id}
+                          id={review.id}
+                          name={review.name}
+                          rating={review.rating}
+                          comment={review.comment}
+                          isOwnReview={false}
+                        />
+                      ))}
                   </div>
+
+                  {/* Empty State */}
+                  {course.reviews.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No reviews yet. Be the first to share your experience!</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
