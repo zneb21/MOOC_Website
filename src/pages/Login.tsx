@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, User } from "@/contexts/AuthContext";
 
 // --- ABSOLUTE URL: CRITICAL FIX for XAMPP connection ---
-const API_BASE_URL = "http://localhost/mooc_api"; 
+const API_BASE_URL = "http://localhost/mooc_api";
 // --------------------------------------------------------
 
 // Utility function for basic email format validation
@@ -17,22 +17,11 @@ const isValidEmail = (email: string) => {
   return /\S+@\S+\.\S+/.test(email);
 };
 
-// Define the shape of the data returned by the backend on successful login
-interface LoginResponse {
-  message: string;
-  token: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    role: "learner" | "instructor";
-  };
-}
-
 const Login = () => {
   const { toast } = useToast();
   const { login, user } = useAuth();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -54,13 +43,12 @@ const Login = () => {
     });
   };
 
+  // Correct login handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await login(formData.email, formData.password);
-    
-    if (error) {
+    if (!isValidEmail(formData.email)) {
       setIsLoading(false);
       toast({
         title: "Validation Error",
@@ -71,51 +59,23 @@ const Login = () => {
     }
 
     try {
-      // API call using the absolute path
-      const response = await fetch(`${API_BASE_URL}/api/auth/login.php`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      const result = await login(formData.email, formData.password);
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      toast({
+        title: "Login Successful! 🎉",
+        description: `Welcome back!`,
       });
 
-      if (response.ok) {
-        const data: LoginResponse = await response.json();
-        
-        // Store user authentication data
-        localStorage.setItem("userToken", data.token);
-        localStorage.setItem("userName", data.user.name);
-        localStorage.setItem("userRole", data.user.role);
-        
-        toast({
-          title: "Login Successful! 🎉",
-          description: `Welcome back, ${data.user.name}.`,
-        });
-
-        navigate("/dashboard");
-      } else if (response.status === 401) {
-        toast({
-          title: "Login Failed",
-          description: "Invalid email or password.",
-          variant: "destructive",
-        });
-      } else {
-        const errorData = await response.json().catch(() => ({ message: "Server error" }));
-        toast({ 
-            title: "Login Failed", 
-            description: errorData.message || "Server error occurred.", 
-            variant: "destructive" 
-        });
-      }
-    } catch (error) {
+      navigate("/dashboard");
+    } catch (error: any) {
       console.error("Login error:", error);
       toast({
-        title: "Network Error",
-        description: "Could not connect to the server. Please ensure your XAMPP Apache service is running.",
+        title: "Login Failed",
+        description: error.message || "Invalid credentials or network error.",
         variant: "destructive",
       });
     } finally {
@@ -150,7 +110,7 @@ const Login = () => {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  type="email" 
+                  type="email"
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleInputChange}
@@ -162,13 +122,11 @@ const Login = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link
-                    to="#"
-                    className="text-sm text-primary hover:underline"
-                  >
+                  <Link to="#" className="text-sm text-primary hover:underline">
                     Forgot Password?
                   </Link>
                 </div>
+
                 <div className="relative">
                   <Input
                     id="password"
