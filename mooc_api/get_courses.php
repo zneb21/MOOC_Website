@@ -74,21 +74,23 @@ try {
     $stmtContent  = $pdo->query($sqlContent);
     $contentsRows = $stmtContent->fetchAll();
 
-    // =====================
-    // 3) LESSONS (ref_course_lessons)
-    $sqlLessons = "
-        SELECT
-            lesson_id,
-            content_id,
-            lesson_title,
-            lesson_duration,
-            lesson_type,
-            lesson_directory,
-            created_at,
-            updated_at
-        FROM ref_course_lessons
-        ORDER BY content_id ASC, lesson_id ASC
-    ";
+        // =====================
+        // 3) LESSONS (ref_course_lessons)
+        $sqlLessons = "
+            SELECT
+                lesson_id,
+                content_id,
+                lesson_title,
+                lesson_duration,
+                lesson_type,
+                progress,           -- 🆕 new column
+                lesson_directory,
+                created_at,
+                updated_at
+            FROM ref_course_lessons
+            ORDER BY content_id ASC, lesson_id ASC
+        ";
+
 
 
     $stmtLessons  = $pdo->query($sqlLessons);

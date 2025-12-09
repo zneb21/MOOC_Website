@@ -86,51 +86,52 @@ const Register = () => {
         }),
       });
 
-      // 3. Handle API Response (CRITICAL FIX)
-      if (response.status === 201) {
-        // HTTP 201 Created (Successful Registration)
+      // 3. Handle API Response
+      // ✅ Treat ANY 2xx as success (PHP usually returns 200 OK)
+      if (response.ok) {
         toast({
           title: "Registration Successful! 🎉",
           description: "Your account has been created. You can now sign in.",
         });
         navigate("/dashboard");
+      }
 
-      } else if (response.status === 409) {
-        // ✅ FIX: DUPLICATE EMAIL ERROR (409 Conflict)
-        // Set the desired user-friendly message
-        const FRIENDLY_MESSAGE = "This email is already in use. Please sign in or use a different email.";
+      // ❌ Duplicate email (409 Conflict)
+      else if (response.status === 409) {
+        const FRIENDLY_MESSAGE =
+          "This email is already in use. Please sign in or use a different email.";
         let errorMessage = FRIENDLY_MESSAGE;
-        
+
         try {
-            // Attempt to read the message from the server's JSON response
-            const errorData = await response.json();
-            // If the PHP message is present, use it. Otherwise, use our friendly fallback.
-            // NOTE: The PHP sends "This email is already registered."
-            // We use our hardcoded message if the server's message is generic.
-            errorMessage = errorData.message ? FRIENDLY_MESSAGE : errorMessage; 
+          const errorData = await response.json();
+          if (errorData.message) {
+            // optional: show backend message instead
+            errorMessage = errorData.message;
+          }
         } catch (e) {
-            // If JSON parsing fails, stick with the friendly hardcoded message
+          // ignore JSON parse errors, keep friendly message
         }
-        
+
         toast({
           title: "Email Already Registered",
           description: errorMessage,
           variant: "destructive",
         });
+      }
 
-      } else {
-        // ALL OTHER ERRORS (400 Bad Request, 500 Internal Server Error, etc.)
+      // ❌ All other errors (400, 500, etc.)
+      else {
         let errorMessage = "An unexpected error occurred during registration.";
         let errorTitle = "Registration Failed";
 
         try {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorMessage;
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
         } catch (e) {
-            if (response.status === 500) {
-                 errorTitle = "Server Error";
-                 errorMessage = "Internal Server Error. Please check XAMPP logs.";
-            }
+          if (response.status === 500) {
+            errorTitle = "Server Error";
+            errorMessage = "Internal Server Error. Please check XAMPP logs.";
+          }
         }
 
         toast({
@@ -139,6 +140,7 @@ const Register = () => {
           variant: "destructive",
         });
       }
+
 
     } catch (error) {
       console.error("Registration error:", error);

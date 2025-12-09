@@ -77,16 +77,23 @@ const EnrolledCourses = ({ enrollments }: EnrolledCoursesProps) => {
                 </div>
                 <Progress value={enrollment.progress} className="h-2" />
               </div>
-              <Button
-                variant={enrollment.progress === 100 ? "outline" : "teal"}
-                size="sm"
-                className="w-full mt-4"
-                asChild
-              >
-                <Link to={`/courses/${enrollment.courseId}`}>
-                  {enrollment.progress === 100 ? "Review Course" : "Continue Learning"}
-                </Link>
-              </Button>
+                <Button
+                  variant={enrollment.progress === 100 ? "outline" : "teal"}
+                  size="sm"
+                  className="w-full mt-4"
+                  asChild
+                >
+                  <Link
+                    to={
+                      enrollment.progress === 100
+                        ? `/courses/${enrollment.courseId}`                 // still go to preview
+                        : `/course/${enrollment.courseId}/lesson/0-0`       // 🔹 jump to LessonView
+                    }
+                  >
+                    {enrollment.progress === 100 ? "Review Course" : "Continue Learning"}
+                  </Link>
+                </Button>
+
             </div>
           </div>
         ))}

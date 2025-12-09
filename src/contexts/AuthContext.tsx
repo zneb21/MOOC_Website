@@ -1,14 +1,24 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+// ✅ PHP auth API base (adjust path if needed)
+const AUTH_API_BASE = "http://localhost/mooc_api/api/auth";
+
+
 // CHANGE: Replace with Database User type when integrating
 export interface User {
+  // Frontend/session ID (your existing UUID)
   id: string;
+
+  // ✅ Real database users.id (INT) – optional because old mock logins won't have it
+  dbId?: number;
+
   email: string;
   fullName: string;
   role: "learner" | "instructor";
   avatarUrl?: string;
   createdAt: string;
 }
+
 
 interface AuthContextType {
   user: User | null;
@@ -50,50 +60,145 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  // CHANGE: Replace with database signInWithPassword
-  const login = async (email: string, password: string): Promise<{ error: string | null }> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Mock validation - accept any email/password for demo
+const login = async (
+  email: string,
+  password: string
+): Promise<{ error: string | null }> => {
+  try {
     if (!email || !password) {
       return { error: "Email and password are required" };
     }
 
-    // Create mock user
-    const mockUser: User = {
-      id: crypto.randomUUID(),
-      email,
-      fullName: email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-      role: "learner",
+    const res = await fetch(`${AUTH_API_BASE}/login.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const raw = await res.text();
+
+    if (!res.ok) {
+      console.error("Login API error:", res.status, raw);
+      let message = "Login failed.";
+
+      try {
+        const json = raw ? JSON.parse(raw) : null;
+        if (json?.message) message = json.message;
+      } catch {
+        // ignore parse error
+      }
+
+      return { error: message };
+    }
+
+    let json: any = {};
+    try {
+      json = raw ? JSON.parse(raw) : {};
+    } catch {
+      console.warn("Non-JSON login response:", raw);
+    }
+
+    // ✅ match login.php shape: json.user.id, json.user.email, etc.
+    if (!json.user || typeof json.user.id === "undefined") {
+      console.error("Login response missing user or user.id:", json);
+      return { error: "Login succeeded but no user data returned from server." };
+    }
+
+    const dbUserId = Number(json.user.id);
+
+    // Build frontend user object
+    const loggedInUser: User = {
+      id: crypto.randomUUID(),               // frontend session id
+      dbId: dbUserId,                        // ✅ actual DB users.id
+      email: json.user.email || email,
+      fullName: json.user.name || email.split("@")[0],
+      role: (json.user.role === "instructor" ? "instructor" : "learner") as
+        | "learner"
+        | "instructor",
       createdAt: new Date().toISOString(),
     };
 
-    setUser(mockUser);
-    localStorage.setItem("silaylearn_user", JSON.stringify(mockUser));
+    setUser(loggedInUser);
+    localStorage.setItem("silaylearn_user", JSON.stringify(loggedInUser));
+
     return { error: null };
-  };
+  } catch (err) {
+    console.error("Login error:", err);
+    return { error: "Unexpected error during login. Please try again." };
+  }
+};
 
-  // CHANGE: Replace with database signUp
-  const register = async (data: RegisterData): Promise<{ error: string | null }> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
+// ✅ Real register using PHP API, storing DB users.id into user.dbId
+const register = async (data: RegisterData): Promise<{ error: string | null }> => {
+  try {
     if (!data.email || !data.password || !data.fullName) {
       return { error: "All fields are required" };
     }
 
-    const mockUser: User = {
-      id: crypto.randomUUID(),
+    const res = await fetch(`${AUTH_API_BASE}/register.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: data.fullName,      // PHP register.php expects "name"
+        email: data.email,
+        password: data.password,
+        role: data.role,
+      }),
+    });
+
+    const raw = await res.text();
+
+    if (!res.ok) {
+      console.error("Register API error:", res.status, raw);
+      let message = "Registration failed.";
+
+      try {
+        const json = raw ? JSON.parse(raw) : null;
+        if (json?.message) message = json.message;
+      } catch {
+        // ignore parse error
+      }
+
+      return { error: message };
+    }
+
+    let json: any = {};
+    try {
+      json = raw ? JSON.parse(raw) : {};
+    } catch {
+      console.warn("Non-JSON register response:", raw);
+    }
+
+    // ✅ userId from PHP = your DB `users.id`
+    const dbUserId = json.userId;
+    if (!dbUserId) {
+      return { error: "Registration succeeded but no userId returned from server." };
+    }
+
+    const newUser: User = {
+      id: crypto.randomUUID(),            // frontend UUID (for your app)
+      dbId: Number(dbUserId),            // ✅ DB users.id
       email: data.email,
       fullName: data.fullName,
       role: data.role,
       createdAt: new Date().toISOString(),
     };
 
-    setUser(mockUser);
-    localStorage.setItem("silaylearn_user", JSON.stringify(mockUser));
+    setUser(newUser);
+    localStorage.setItem("silaylearn_user", JSON.stringify(newUser));
+
     return { error: null };
-  };
+  } catch (err) {
+    console.error("Register error:", err);
+    return { error: "Unexpected error during registration. Please try again." };
+  }
+};
+
+
 
   // CHANGE: Replace with database signOut
   const logout = () => {

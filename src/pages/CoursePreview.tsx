@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,27 @@ type Module = {
 
 // ✅ data coming from PHP/MySQL
 const API_URL = "http://localhost/mooc_api/get_courses.php";
+
+// ✅ enroll endpoint
+const ENROLL_COURSE_URL = "http://localhost/mooc_api/enroll_course.php";
+
+
+// ✅ comments API endpoints
+const CREATE_COMMENT_URL = "http://localhost/mooc_api/create_comment.php";
+const GET_COMMENTS_URL   = "http://localhost/mooc_api/get_comments.php";
+const DELETE_COMMENT_URL = "http://localhost/mooc_api/delete_comment.php"; // 🆕
+const UPDATE_COMMENT_URL  = "http://localhost/mooc_api/update_comment.php"; // 🆕
+
+// ✅ shape of rows from tra_comment
+type ReviewFromApi = {
+  comment_id: number;
+  content_id: number;
+  user_id: number | null;
+  user_name: string | null;
+  rating: number;
+  comment_text: string;
+  created_at: string;
+};
 
 
 
@@ -69,89 +91,11 @@ interface CourseFromApi {
   course_contents?: CourseContentFromApi[];
 }
 
-// ⭐ Only keep extra meta not yet in DB (objectives, reviews, rating, students, duration)
-type StaticCourseMeta = {
-  rating: number;
-  students: number;
-  duration: string;
-  objectives: string[];
-  reviews: { id?: string; name: string; rating: number; comment: string; userId?: string }[];
-};
-
-const staticMetaById: Record<string, StaticCourseMeta> = {
-  "1": {
-    rating: 4.9,
-    students: 1250,
-    duration: "8 hours",
-    objectives: [
-      "Understand Iloilo's historical significance in Philippine history",
-      "Navigate popular tourist destinations with confidence",
-      "Discover hidden gems known only to locals",
-      "Learn about Ilonggo customs and traditions",
-      "Plan complete itineraries for different travel styles",
-    ],
-    reviews: [
-      { name: "Jose M.", rating: 5, comment: "Amazing course! I learned so much about my own city." },
-      { name: "Anna L.", rating: 5, comment: "Maria is an excellent instructor. Very informative!" },
-      { name: "Mark T.", rating: 4, comment: "Great content, helped me plan my Iloilo trip perfectly." },
-    ],
-  },
-  "2": {
-    rating: 4.8,
-    students: 980,
-    duration: "12 hours",
-    objectives: [
-      "Master essential Filipino cooking techniques",
-      "Prepare classic dishes like Adobo, Sinigang, and Kare-Kare",
-      "Understand the history behind Filipino cuisine",
-      "Source and prepare traditional ingredients",
-      "Create your own variations while respecting tradition",
-    ],
-    reviews: [
-      { name: "Lisa P.", rating: 5, comment: "My adobo has never tasted better! Thank you Chef!" },
-      { name: "Miguel R.", rating: 5, comment: "Comprehensive and easy to follow. Highly recommended!" },
-      { name: "Sarah K.", rating: 4, comment: "Great course for anyone wanting to learn Filipino cooking." },
-    ],
-  },
-  "3": {
-    rating: 4.7,
-    students: 540,
-    duration: "6 hours",
-    objectives: [
-      "Understand rice cultivation cycles",
-      "Implement sustainable farming practices",
-      "Manage pests naturally without harmful chemicals",
-      "Optimize water usage and irrigation",
-      "Prepare for harvest and post-harvest handling",
-    ],
-    reviews: [
-      { name: "Pedro G.", rating: 5, comment: "Very practical knowledge. Applied it to our farm immediately." },
-      { name: "Maria C.", rating: 4, comment: "Great overview of sustainable farming methods." },
-      { name: "Carlos A.", rating: 5, comment: "Juan's expertise really shows. Excellent course!" },
-    ],
-  },
-  "4": {
-    rating: 4.9,
-    students: 320,
-    duration: "10 hours",
-    objectives: [
-      "Set up and operate a traditional weaving loom",
-      "Create basic to intermediate hablon patterns",
-      "Understand the cultural significance of patterns",
-      "Source and prepare natural fibers",
-      "Complete a finished hablon textile product",
-    ],
-    reviews: [
-      { name: "Elena R.", rating: 5, comment: "Lola Perla is a treasure! So grateful for this course." },
-      { name: "James L.", rating: 5, comment: "Finally learning this beautiful art. Thank you!" },
-      { name: "Rosa M.", rating: 5, comment: "Preserving our heritage one weave at a time." },
-    ],
-  },
-};
 
 
 const CoursePreview = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [dbCourses, setDbCourses] = useState<CourseFromApi[] | null>(null);
@@ -185,34 +129,67 @@ const CoursePreview = () => {
     fetchCourse();
   }, [id]);
 
-  // Initialize reviews from static data
-  useEffect(() => {
-    if (dbCourses && id) {
-      const numericId = String(id);
-      const staticMeta = staticMetaById[numericId];
-      if (staticMeta?.reviews) {
-        setAllReviews(staticMeta.reviews.map((review, idx) => ({
-          id: `review-${idx}`,
-          ...review,
-        })));
-      }
-    }
-  }, [dbCourses, id]);
+// Load reviews from DB (tra_comment) – no more placeholder/seed reviews
+useEffect(() => {
+  if (!dbCourses || !id) return;
 
-  // Handle adding or updating a review
-  const handleSaveReview = async (reviewData: ReviewData) => {
-    if (!user) {
-      alert("Please log in to post a review");
-      return;
-    }
+  const numericId = String(id);
 
-    setIsLoadingReview(true);
+  const fetchReviews = async () => {
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const res = await fetch(`${GET_COMMENTS_URL}?content_id=${numericId}`);
+      let dbReviews: ReviewFromApi[] = [];
 
-      if (editingReviewId) {
-        // Update existing review
+      if (res.ok) {
+        dbReviews = await res.json();
+      }
+
+      const mappedDbReviews = dbReviews.map((r) => ({
+        id: String(r.comment_id),
+        name: r.user_name || "Anonymous",
+        rating: r.rating,
+        comment: r.comment_text,
+        userId: r.user_id !== null ? String(r.user_id) : undefined,
+      }));
+
+      setAllReviews(mappedDbReviews);
+    } catch (err) {
+      console.error("Failed to load reviews:", err);
+      setAllReviews([]); // fallback: no reviews
+    }
+  };
+
+  fetchReviews();
+}, [dbCourses, id]);
+
+
+const handleSaveReview = async (reviewData: ReviewData) => {
+  if (!user) {
+    alert("Please log in to post a review");
+    return;
+  }
+
+  // 🔹 use URL /courses/:id as the content_id key
+  const contentIdNum = id ? parseInt(id, 10) : 0;
+  if (!contentIdNum || Number.isNaN(contentIdNum)) {
+    alert("Invalid course id for this review.");
+    return;
+  }
+
+  setIsLoadingReview(true);
+
+  try {
+    if (editingReviewId) {
+      // ✏️ EDIT MODE: update DB (if DB-backed) or local (if seed- review)
+      const existing = allReviews.find((r) => r.id === editingReviewId);
+      if (!existing) {
+        console.error("Editing review not found:", editingReviewId);
+        setIsLoadingReview(false);
+        return;
+      }
+
+      // Seed/static reviews don't exist in DB → local update only
+      if (editingReviewId.startsWith("seed-")) {
         setAllReviews((prevReviews) =>
           prevReviews.map((review) =>
             review.id === editingReviewId
@@ -224,56 +201,259 @@ const CoursePreview = () => {
               : review
           )
         );
-        setEditingReviewId(null);
       } else {
-        // Add new review
-        const newReview = {
-          id: `review-${Date.now()}`,
-          name: user.fullName || "Anonymous",
+        // ✅ Real DB-backed comment: call update_comment.php
+        if (!user.dbId || user.dbId <= 0) {
+          console.error("User has no valid dbId:", user);
+          alert("Your account is not linked to the database yet. Please re-login.");
+          setIsLoadingReview(false);
+          return;
+        }
+
+        const commentIdNum = parseInt(editingReviewId, 10);
+        if (!commentIdNum || Number.isNaN(commentIdNum)) {
+          console.error("Invalid comment id for edit:", editingReviewId);
+          setIsLoadingReview(false);
+          return;
+        }
+
+        const payload = {
+          comment_id: commentIdNum,
+          user_id: user.dbId,                 // ✅ DB users.id
           rating: reviewData.rating,
-          comment: reviewData.comment,
-          userId: user.id,
+          comment_text: reviewData.comment,
         };
-        setAllReviews((prevReviews) => [newReview, ...prevReviews]);
-        setUserReviewIds((prev) => new Set([...prev, newReview.id || ""]));
+
+        const res = await fetch(UPDATE_COMMENT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const raw = await res.text();
+        let json: any = {};
+        try {
+          json = raw ? JSON.parse(raw) : {};
+        } catch {
+          // ignore parse error
+        }
+
+        if (!res.ok || !json.success) {
+          console.error("update_comment.php error:", res.status, raw);
+          alert(json.message || "Failed to update review. Please try again.");
+          setIsLoadingReview(false);
+          return;
+        }
+
+        // ✅ update local state
+        setAllReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.id === editingReviewId
+              ? {
+                  ...review,
+                  rating: reviewData.rating,
+                  comment: reviewData.comment,
+                }
+              : review
+          )
+        );
       }
-      setShowReviewComposer(false);
-    } catch (err) {
-      console.error("Error saving review:", err);
-      alert("Failed to save review. Please try again.");
-    } finally {
-      setIsLoadingReview(false);
+
+      setEditingReviewId(null);
+    } else {
+      // 🆕 CREATE MODE: send to PHP
+
+      // ✅ Safety check: make sure this user is linked to a DB row
+      if (!user.dbId || user.dbId <= 0) {
+        console.error("User has no valid dbId:", user);
+        alert("Your account is not linked to the database yet. Please re-register or contact support.");
+        setIsLoadingReview(false);
+        return;
+      }
+
+      const payload = {
+        content_id: contentIdNum,
+        user_id: user.dbId,                          // ✅ real DB users.id
+        user_name: user.fullName || "Anonymous",
+        rating: reviewData.rating,
+        comment_text: reviewData.comment,
+      };
+
+      console.log("Sending review payload:", payload);
+
+      const res = await fetch(CREATE_COMMENT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const raw = await res.text(); // read once
+
+      if (!res.ok) {
+        console.error("create_comment.php error:", res.status, raw);
+        alert(`Failed to save review.\nStatus: ${res.status}\nResponse: ${raw}`);
+        throw new Error(`HTTP ${res.status}: ${raw}`);
+      }
+
+      // if OK, parse JSON
+      let json: any = {};
+      try {
+        json = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        console.warn("Non-JSON success response:", raw);
+      }
+
+      const newId =
+        json.comment_id !== undefined
+          ? String(json.comment_id)
+          : `review-${Date.now()}`;
+
+      const newReview = {
+        id: newId,
+        name: payload.user_name,
+        rating: payload.rating,
+        comment: payload.comment_text,
+        userId: String(payload.user_id || ""),
+      };
+
+      // ✅ update UI immediately
+      setAllReviews((prevReviews) => [newReview, ...prevReviews]);
+      setUserReviewIds((prev) => new Set([...prev, newId]));
     }
-  };
+
+    setShowReviewComposer(false);
+  } catch (err) {
+    console.error("Error saving review:", err);
+  } finally {
+    setIsLoadingReview(false);
+  }
+};
 
   // Handle deleting a review
-  const handleDeleteReview = async (reviewId: string | undefined) => {
-    if (!reviewId) return;
+// Handle deleting a review (real DB delete)
+const handleDeleteReview = async (reviewId: string | undefined) => {
+  if (!reviewId) return;
 
-    setDeletingReviewId(reviewId);
+  if (!user || !user.dbId) {
+    alert("Please log in again to delete your review.");
+    return;
+  }
+
+  // Seeded/static reviews (like seed-0) don't exist in DB – just remove locally
+  if (reviewId.startsWith("seed-")) {
+    setAllReviews((prevReviews) =>
+      prevReviews.filter((review) => review.id !== reviewId)
+    );
+    return;
+  }
+
+  const commentIdNum = parseInt(reviewId, 10);
+  if (!commentIdNum || Number.isNaN(commentIdNum)) {
+    console.error("Invalid review id for deletion:", reviewId);
+    return;
+  }
+
+  setDeletingReviewId(reviewId);
+
+  try {
+    const res = await fetch(DELETE_COMMENT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        comment_id: commentIdNum,  // 🆕 tra_comment.comment_id
+        user_id: user.dbId,       // 🆕 DB users.id
+      }),
+    });
+
+    const raw = await res.text();
+    let json: any = {};
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      setAllReviews((prevReviews) =>
-        prevReviews.filter((review) => review.id !== reviewId)
-      );
-      setUserReviewIds((prev) => {
-        const updated = new Set(prev);
-        updated.delete(reviewId);
-        return updated;
-      });
-    } catch (err) {
-      console.error("Error deleting review:", err);
-      alert("Failed to delete review. Please try again.");
-    } finally {
-      setDeletingReviewId(null);
+      json = raw ? JSON.parse(raw) : {};
+    } catch {
+      // ignore parse error
     }
-  };
+
+    if (!res.ok || !json.success) {
+      console.error("Delete review failed:", res.status, raw);
+      alert(json.message || "Failed to delete review. Please try again.");
+      return;
+    }
+
+    // ✅ update local state on success
+    setAllReviews((prevReviews) =>
+      prevReviews.filter((review) => review.id !== reviewId)
+    );
+    setUserReviewIds((prev) => {
+      const updated = new Set(prev);
+      updated.delete(reviewId);
+      return updated;
+    });
+  } catch (err) {
+    console.error("Error deleting review:", err);
+    alert("Failed to delete review. Please try again.");
+  } finally {
+    setDeletingReviewId(null);
+  }
+};
+
+const handleEnrollClick = async () => {
+  if (!user) {
+    // Not logged in → send to register
+    navigate("/register");
+    return;
+  }
+
+  if (!user.dbId || user.dbId <= 0) {
+    alert("Your account is not linked to the database yet. Please re-login.");
+    return;
+  }
+
+  // course.id is from the `course` object we built
+  const courseId = course.id;
+
+  try {
+    const res = await fetch(ENROLL_COURSE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: user.dbId,
+        course_id: courseId,
+      }),
+    });
+
+    const raw = await res.text();
+    let json: any = {};
+    try {
+      json = raw ? JSON.parse(raw) : {};
+    } catch {
+      console.warn("Non-JSON response from enroll_course:", raw);
+    }
+
+    if (!res.ok || !json.success) {
+      console.error("Enroll failed:", res.status, raw);
+      alert(json.message || "Failed to enroll in this course. Please try again.");
+      return;
+    }
+
+    // ✅ Enrollment successful → go to dashboard
+    navigate("/dashboard");
+  } catch (err) {
+    console.error("Error calling enroll_course.php:", err);
+    alert("Something went wrong while enrolling. Please try again.");
+  }
+};
+
+
 
   // Get current user's reviews (multiple)
-  const currentUserReviews = allReviews.filter((review) => review.userId === user?.id);
-  const isEditingMode = editingReviewId !== null;
+// Get current user's reviews (multiple) by DB id
+const currentUserReviews =
+  user?.dbId
+    ? allReviews.filter((review) => review.userId === String(user.dbId))
+    : [];
+
+const isEditingMode = editingReviewId !== null;
+
 
   if (loading) {
     return (
@@ -309,18 +489,13 @@ if (!db) {
   );
 }
 
-// ✅ pull static extras (objectives, reviews, rating, students, duration)
-const staticMeta =
-  staticMetaById[numericId] ??
-  {
-    rating: 4.5,
-    students: 0,
-    duration: "Self-paced",
-    objectives: [],
-    reviews: [],
-  };
+// Optional: compute average rating from real reviews
+const averageRating =
+  allReviews.length > 0
+    ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+    : 0;
 
-// ✅ final course object used by JSX below
+// ✅ final course object used by JSX below (no placeholder meta)
 const course = {
   id: db.course_id,
   title: db.course_title,
@@ -329,15 +504,15 @@ const course = {
   image: db.course_thumbnail_url ?? tourismImage, // fallback image
   instructorImage: db.instructor_image_url ?? undefined,
   instructorTitle: db.instructor_title ?? undefined,
-  rating: staticMeta.rating,
-  students: staticMeta.students,
-  duration: staticMeta.duration,
+  rating: averageRating,
+  students: 0,                    // replace later if you add real DB field
+  duration: "Self-paced",         // replace later if you add real DB field
   category: db.course_category ?? "General",
   price: `₱${db.course_price.toLocaleString()}`,
   description:
     db.course_sub_description ?? db.course_description ?? "",
   longDescription: db.course_description ?? "",
-  objectives: staticMeta.objectives,
+  objectives: [],                 // no more placeholder objectives
   modules: (db.course_contents ?? []).map((content) => ({
     title: content.course_content_title,
     duration: content.course_content_length ?? "",
@@ -349,6 +524,7 @@ const course = {
   })),
   reviews: allReviews,
 };
+
 
 
 
@@ -446,9 +622,15 @@ const course = {
                       {course.price}
                     </span>
                   </div>
-                  <Button variant="hero" size="xl" className="w-full mb-3" asChild>
-                    <Link to="/register">Enroll Now</Link>
-                  </Button>
+                    <Button
+                      variant="hero"
+                      size="xl"
+                      className="w-full mb-3"
+                      onClick={handleEnrollClick}
+                    >
+                      Enroll Now
+                    </Button>
+
                   <p className="text-center text-muted-foreground text-sm">
                     30-day money-back guarantee
                   </p>
