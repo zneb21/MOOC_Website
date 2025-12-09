@@ -19,7 +19,7 @@ DB_CONFIG = {
     "host": "localhost",
     "user": "root",
     "password": "",
-    "database": "mooc_system",
+    "database": "my_app_db",
     "port": 3306,
 }
 
