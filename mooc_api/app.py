@@ -24,7 +24,7 @@ DB_CONFIG = {
 }
 
 # Gemini configuration
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyCQRNEb3LcRLExpTLs4NaBuOIBZE_Tx59k")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDy8OK9G95rSOKeLD-eTkWYlnCkcO2WZuI")
 GEMINI_MODEL = "gemini-2.5-flash"
 USE_SDK = True  # switch to False to use REST
 
