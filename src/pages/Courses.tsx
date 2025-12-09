@@ -81,7 +81,7 @@ const Courses = () => {
           instructor: c.instructor_name ?? "Unknown Instructor",
           // ⭐ primary: DB thumbnail URL; fallback: local placeholder
           image: c.course_thumbnail_url ?? fallbackImage,
-          rating: 4.8,
+          rating: Number(4.8.toFixed(1)),
           students: 0,
           duration: "8 hours",
           category: c.course_category ?? "Uncategorized",
@@ -262,7 +262,7 @@ const Courses = () => {
                             <div className="flex items-center gap-1">
                               <Star className="w-4 h-4 text-secondary fill-secondary" />
                               <span className="font-medium text-foreground">
-                                {course.rating}
+                                {course.rating.toFixed(1)}
                               </span>
                             </div>
                             <div className="flex items-center gap-1">

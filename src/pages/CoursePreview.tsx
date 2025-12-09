@@ -504,7 +504,7 @@ const course = {
   image: db.course_thumbnail_url ?? tourismImage, // fallback image
   instructorImage: db.instructor_image_url ?? undefined,
   instructorTitle: db.instructor_title ?? undefined,
-  rating: averageRating,
+  rating: Number(averageRating.toFixed(1)),
   students: 0,                    // replace later if you add real DB field
   duration: "Self-paced",         // replace later if you add real DB field
   category: db.course_category ?? "General",
