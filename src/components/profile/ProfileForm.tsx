@@ -1,23 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Camera } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import AvatarSelector from "./AvatarSelector";
 
 const ProfileForm = () => {
-  const { user, updateProfile } = useAuth();
+  const authContext = useAuth();
   const { toast } = useToast();
+
+  // Gracefully handle the case where the component is rendered outside of the AuthProvider
+  if (!authContext) {
+    return null; // or a loading/error indicator
+  }
+  const { user, updateProfile } = authContext;
+
   const [isLoading, setIsLoading] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || "");
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(user?.avatarId || null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await updateProfile({ fullName });
+    // Pass both fullName and the selected avatarId to the update function
+    const { error } = await updateProfile({ fullName, avatarId: selectedAvatar });
 
     if (error) {
       toast({
@@ -35,15 +43,6 @@ const ProfileForm = () => {
     setIsLoading(false);
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
     <div className="bg-card rounded-2xl p-6 shadow-soft">
       <h2 className="font-display text-xl font-semibold text-foreground mb-6">
@@ -51,24 +50,8 @@ const ProfileForm = () => {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Avatar */}
-        <div className="flex items-center gap-4">
-          <Avatar className="w-20 h-20">
-            <AvatarImage src={user?.avatarUrl} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-              {user?.fullName ? getInitials(user.fullName) : <User className="w-8 h-8" />}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <Button type="button" variant="outline" size="sm" disabled>
-              <Camera className="w-4 h-4 mr-2" />
-              Upload Photo
-            </Button>
-            <p className="text-xs text-muted-foreground mt-1">
-              Photo upload coming soon
-            </p>
-          </div>
-        </div>
+        {/* Avatar Selector */}
+        <AvatarSelector selectedAvatar={selectedAvatar} onSelect={setSelectedAvatar} />
 
         {/* Full Name */}
         <div className="space-y-2">
