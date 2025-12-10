@@ -9,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 // Assuming you have Textarea component
 import { Textarea } from "@/components/ui/textarea"; 
 import { Star, Clock, Users, PlayCircle, CheckCircle, Award, BookOpen, FileText, HelpCircle, Edit, Trash2, Settings } from "lucide-react";
+import ThemeToggle from "@/components/profile/ThemeToggle";
 import tourismImage from "@/assets/course-tourism.jpg";
 import cookingImage from "@/assets/course-cooking.jpg";
 import agricultureImage from "@/assets/course-agriculture.jpg";
@@ -112,7 +113,9 @@ const Profile = () => {
               </div>
             </div>
 
+            
             <ProfileForm />
+            <ThemeToggle />
             <SecuritySettings />
           </div>
         </div>
