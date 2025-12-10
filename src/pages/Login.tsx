@@ -65,7 +65,6 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // ✅ CRITICAL FIX: Delegate login to AuthContext (which handles API call and session cleanup)
       const { error } = await login(formData.email, formData.password);
 
       if (error) {
@@ -78,7 +77,7 @@ const Login = () => {
         toast({
           title: "Login Success!",
           description: "Welcome back.",
-          variant: "default",
+          variant: "default", 
         });
         // Navigation is handled by the useEffect above when 'user' state updates
       }

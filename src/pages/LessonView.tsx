@@ -75,12 +75,48 @@ type CourseData = {
 export default function UdemyLayout() {
   const NAV_HEIGHT = 64;
 
-  // 🔹 single place to get the "current" user id (with fallback)
-  const getUserId = () => {
-    const rawUserId = localStorage.getItem("user_id");
-    const parsed = rawUserId ? parseInt(rawUserId, 10) : 23; // fallback test user
-    return parsed || 23;
+  // ---------------------------------------------------------
+  // ✅ FIX: Robust User ID Retrieval ALIGNED with AuthContext
+  // ---------------------------------------------------------
+  /**
+   * Safely retrieves the user's database ID from localStorage, checking multiple
+   * potential keys used by the login/auth flow.
+   */
+  const getCurrentUserId = (): number | null => {
+    try {
+      // 1. Primary Check: "silaylearn_user" object (used by your AuthProvider)
+      const userRaw = localStorage.getItem("silaylearn_user");
+      if (userRaw) {
+        const parsed = JSON.parse(userRaw);
+        // Look for dbId (the actual database ID from PHP login.php)
+        if (parsed && parsed.dbId) return Number(parsed.dbId);
+      }
+
+      // FALLBACK 1: Check for old "user" object 
+      const oldUserRaw = localStorage.getItem("user");
+      if (oldUserRaw) {
+        const parsed = JSON.parse(oldUserRaw);
+        if (parsed && parsed.id) return Number(parsed.id);
+      }
+
+      // FALLBACK 2: Check for direct "user_id" string
+      const userIdRaw = localStorage.getItem("user_id");
+      if (userIdRaw) return Number(userIdRaw);
+
+    } catch (e) {
+      console.error("Error parsing user ID from localStorage:", e);
+    }
+    
+    // Original fallback logic (23) to minimize change if no keys are present
+    console.warn("No valid user ID found in storage. Falling back to ID 23.");
+    return 23; 
   };
+  
+  // Get the current user ID to use for state and the component key
+  const currentUserId = getCurrentUserId();
+  // ---------------------------------------------------------
+  // END FIX: Robust User ID Retrieval
+  // ---------------------------------------------------------
 
 
   // 🔹 route params: /course/:id/lesson/:lessonSlug
@@ -103,10 +139,10 @@ const [completed, setCompleted] = useState<Set<string>>(new Set());
 
 // 🧠 load saved completed lessons (per user + course) from localStorage
 useEffect(() => {
-  if (!id) return;
+  // ✅ FIX: Use currentUserId instead of calling the deprecated getUserId()
+  if (!id || !currentUserId) return; 
 
-  const userId = getUserId();
-  const storageKey = `completed_${userId}_${id}`;
+  const storageKey = `completed_${currentUserId}_${id}`;
   const stored = localStorage.getItem(storageKey);
   if (!stored) return;
 
@@ -117,7 +153,8 @@ useEffect(() => {
   } catch (e) {
     console.error("Failed to parse saved completed lessons", e);
   }
-}, [id]);
+// ✅ FIX: Add currentUserId to dependency array
+}, [id, currentUserId]);
 
 
   // 🔹 parse "module-lesson" slug from URL (e.g. "0-1"), default to "0-0"
@@ -224,7 +261,12 @@ const updateCourseProgress = async (
   newProgress: number,
   lessonsFinished: number
 ) => {
-  const userId = getUserId();
+  // ✅ FIX: Use currentUserId variable
+  if (!currentUserId) {
+    console.warn("[updateCourseProgress] Missing user ID. Progress not saved.");
+    return;
+  }
+  const userId = currentUserId; 
 
   console.log("[updateCourseProgress] payload", {
     userId,
@@ -278,8 +320,8 @@ const toggleComplete = () => {
     updateCourseProgress(newProgress, newLessonsFinished);
 
     // 💾 save completed lessons in localStorage using SAME helper
-    if (id) {
-      const userId = getUserId();
+    if (id && currentUserId) { // ✅ FIX: Check and use currentUserId
+      const userId = currentUserId;
       const storageKey = `completed_${userId}_${id}`;
       const arr = Array.from(next);
       localStorage.setItem(storageKey, JSON.stringify(arr));
@@ -289,8 +331,6 @@ const toggleComplete = () => {
     return next;
   });
 };
-
-
 
 
 const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
@@ -312,7 +352,15 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
     // 🔁 save BOTH to DB for this user + this course
     updateCourseProgress(newProgress, newLessonsFinished);
 
-    return next;
+    if (id && currentUserId) { // ✅ FIX: Save to localStorage using currentUserId
+        const userId = currentUserId;
+        const storageKey = `completed_${userId}_${id}`;
+        const arr = Array.from(next);
+        localStorage.setItem(storageKey, JSON.stringify(arr));
+    }
+
+
+    return prev; // Return prev if no change, or next if changed
   });
 };
 
@@ -342,6 +390,18 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
   const sendChat = async () => {
     if (!chatInput.trim() || isSendingRef.current) return;
     isSendingRef.current = true;
+    
+    // Check if a valid user ID is available
+    if (!currentUserId) { // ✅ FIX: Check currentUserId
+        setChatMessages((prev) => [
+            ...prev,
+            { sender: "assistant", text: "Please sign in to use the AI assistant." },
+        ]);
+        setChatInput("");
+        isSendingRef.current = false;
+        return;
+    }
+
 
     const userMessage = chatInput.trim();
     setChatMessages((prev) => [
@@ -353,11 +413,10 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
     setIsTyping(true);
 
     try {
-      const rawUserId = localStorage.getItem("user_id");
-      const userId = rawUserId ? parseInt(rawUserId, 10) : 9;
+      const userId = currentUserId; // ✅ FIX: Use currentUserId
 
       const res = await axios.post("http://127.0.0.1:5000/chat", {
-        user_id: userId,
+        user_id: userId, // ✅ FIX: Use currentUserId
         message: userMessage,
         lesson_title: currentLesson?.title ?? "",
         language: "en",
@@ -392,7 +451,13 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
   }
 
   return (
-    <div className="w-full h-screen bg-background text-slate-900 dark:text-zinc-200 flex flex-col overflow-hidden">
+    // -----------------------------------------------------------------
+    // ✅ FIX: Force Component Reload when User or Course changes
+    // -----------------------------------------------------------------
+    <div 
+      key={`user-${currentUserId}-course-${id}`} // Add key
+      className="w-full h-screen bg-background text-slate-900 dark:text-zinc-200 flex flex-col overflow-hidden"
+    >
       {/* Top Navigation */}
       <nav className="h-16 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-4 flex-shrink-0 z-50">
         <div className="flex items-center gap-4">
