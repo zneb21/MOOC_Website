@@ -110,8 +110,8 @@ const login = async (
 
     // Build frontend user object
     const loggedInUser: User = {
-      id: crypto.randomUUID(),               // frontend session id
-      dbId: dbUserId,                        // ✅ actual DB users.id
+      id: crypto.randomUUID(),           // frontend session id
+      dbId: dbUserId,                     // ✅ actual DB users.id
       email: json.user.email || email,
       fullName: json.user.name || email.split("@")[0],
       role: (json.user.role === "instructor" ? "instructor" : "learner") as
@@ -119,9 +119,20 @@ const login = async (
         | "instructor",
       createdAt: new Date().toISOString(),
     };
+    
+    // --- START CRITICAL FIX ---
+    // Explicitly clear legacy/old session keys to prevent LessonView.tsx from loading them
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("token");
+    // --- END CRITICAL FIX ---
 
     setUser(loggedInUser);
     localStorage.setItem("silaylearn_user", JSON.stringify(loggedInUser));
+    
+    if (json.token) {
+        localStorage.setItem("token", json.token);
+    }
 
     return { error: null };
   } catch (err) {
@@ -180,13 +191,19 @@ const register = async (data: RegisterData): Promise<{ error: string | null }> =
     }
 
     const newUser: User = {
-      id: crypto.randomUUID(),            // frontend UUID (for your app)
-      dbId: Number(dbUserId),            // ✅ DB users.id
+      id: crypto.randomUUID(),          // frontend UUID (for your app)
+      dbId: Number(dbUserId),           // ✅ DB users.id
       email: data.email,
       fullName: data.fullName,
       role: data.role,
       createdAt: new Date().toISOString(),
     };
+    
+    // --- START CRITICAL FIX (on register too) ---
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("token");
+    // --- END CRITICAL FIX ---
 
     setUser(newUser);
     localStorage.setItem("silaylearn_user", JSON.stringify(newUser));
@@ -199,11 +216,15 @@ const register = async (data: RegisterData): Promise<{ error: string | null }> =
 };
 
 
-
   // CHANGE: Replace with database signOut
   const logout = () => {
     setUser(null);
+    // --- START CRITICAL FIX ---
     localStorage.removeItem("silaylearn_user");
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("token");
+    // --- END CRITICAL FIX ---
   };
 
   // CHANGE: Replace with database update

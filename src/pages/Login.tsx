@@ -37,45 +37,56 @@ const Login = () => {
   }, [user, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Correct login handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
     if (!isValidEmail(formData.email)) {
-      setIsLoading(false);
       toast({
-        title: "Validation Error",
+        title: "Invalid Email",
         description: "Please enter a valid email address.",
         variant: "destructive",
       });
       return;
     }
 
-    try {
-      const result = await login(formData.email, formData.password);
-
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
+    if (!formData.password) {
       toast({
-        title: "Login Successful! 🎉",
-        description: `Welcome back!`,
+        title: "Missing Password",
+        description: "Please enter your password.",
+        variant: "destructive",
       });
+      return;
+    }
 
-      navigate("/dashboard");
-    } catch (error: any) {
-      console.error("Login error:", error);
+    setIsLoading(true);
+
+    try {
+      // ✅ CRITICAL FIX: Delegate login to AuthContext (which handles API call and session cleanup)
+      const { error } = await login(formData.email, formData.password);
+
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login Success!",
+          description: "Welcome back.",
+          variant: "default",
+        });
+        // Navigation is handled by the useEffect above when 'user' state updates
+      }
+    } catch (error) {
+      console.error("Login process error:", error);
       toast({
-        title: "Login Failed",
-        description: error.message || "Invalid credentials or network error.",
+        title: "Unexpected Error",
+        description: "An unexpected error occurred during login.",
         variant: "destructive",
       });
     } finally {
@@ -83,116 +94,116 @@ const Login = () => {
     }
   };
 
+
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
       <Navbar />
 
-      <main className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md">
-          {/* Card */}
-          <div className="bg-card rounded-2xl shadow-medium p-8 animate-scale-in">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4">
-                <GraduationCap className="w-8 h-8 text-primary-foreground" />
-              </div>
-              <h1 className="font-display text-2xl font-bold text-foreground mb-2">
-                Welcome Back
-              </h1>
-              <p className="text-muted-foreground">
-                Sign in to continue your learning journey
-              </p>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="h-12"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link to="#" className="text-sm text-primary hover:underline">
-                    Forgot Password?
-                  </Link>
-                </div>
-
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    className="h-12 pr-12"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                variant="teal"
-                size="lg"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
-
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
-                  New to SilayLearn?
-                </span>
-              </div>
-            </div>
-
-            {/* Sign Up Link */}
-            <Button variant="outline" size="lg" className="w-full" asChild>
-              <Link to="/register">Create an Account</Link>
-            </Button>
+      <main className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-card border border-border rounded-lg shadow-lg p-6 md:p-8">
+          <div className="text-center mb-6">
+            <GraduationCap className="h-10 w-10 text-primary mx-auto mb-2" />
+            <h2 className="text-2xl font-bold text-card-foreground">Sign In</h2>
+            <p className="text-muted-foreground text-sm">
+              Access your personalized learning journey
+            </p>
           </div>
 
-          {/* Footer */}
-          <p className="text-center text-muted-foreground text-sm mt-6">
-            By signing in, you agree to our{" "}
-            <Link to="#" className="text-primary hover:underline">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link to="#" className="text-primary hover:underline">
-              Privacy Policy
-            </Link>
-          </p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email Input */}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleInputChange}
+                autoComplete="email"
+                required
+              />
+            </div>
+
+            {/* Password Input */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              variant="teal"
+              size="lg"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                New to SilayLearn?
+              </span>
+            </div>
+          </div>
+
+          {/* Sign Up Link */}
+          <Button variant="outline" size="lg" className="w-full" asChild>
+            <Link to="/register">Create an Account</Link>
+          </Button>
         </div>
       </main>
+
+      {/* Footer */}
+      <p className="text-center text-muted-foreground text-sm mt-6 p-4">
+        By signing in, you agree to our{" "}
+        <Link to="#" className="text-primary hover:underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link to="#" className="text-primary hover:underline">
+          Privacy Policy
+        </Link>
+      </p>
     </div>
   );
 };

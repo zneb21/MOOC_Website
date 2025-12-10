@@ -8,33 +8,24 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  Menu,
-  X,
   PlayCircle,
   ChevronLeft,
   ChevronRight,
   CheckCircle,
-  MessageSquare,
-  Home,
 } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
-import axios from "axios"; // for Flask + PHP API
+import axios from "axios"; 
 
-
-// ✅ same API as CoursePreview
 const API_URL = "http://localhost/mooc_api/get_courses.php";
-const UPDATE_PROGRESS_API =
-  "http://localhost/mooc_api/update_course_progress.php"; // 🆕
+const UPDATE_PROGRESS_API = "http://localhost/mooc_api/update_course_progress.php"; 
 
-
-// 🔹 shapes from PHP (only what we need in LessonView)
+// --- Type Definitions ---
 type LessonFromApi = {
   lesson_id: number;
   content_id: number;
   lesson_title: string;
   lesson_duration: string | null;
   lesson_type: "video" | "reading" | "quiz" | null;
-  lesson_directory_url?: string | null; // ⬅️ from get_courses.php
+  lesson_directory_url?: string | null;
 };
 
 type CourseContentFromApi = {
@@ -53,12 +44,11 @@ type CourseFromApi = {
   course_contents?: CourseContentFromApi[];
 };
 
-// 🔹 internal UI types
 type Lesson = {
   title: string;
   duration: string;
   type: "video" | "reading" | "quiz";
-  videoUrl?: string | null; // ⬅️ mapped from lesson_directory_url
+  videoUrl?: string | null;
 };
 
 type Module = {
@@ -73,65 +63,92 @@ type CourseData = {
 };
 
 export default function UdemyLayout() {
-  const NAV_HEIGHT = 64;
-
-  // 🔹 single place to get the "current" user id (with fallback)
-  const getUserId = () => {
-    const rawUserId = localStorage.getItem("user_id");
-    const parsed = rawUserId ? parseInt(rawUserId, 10) : 23; // fallback test user
-    return parsed || 23;
-  };
-
-
-  // 🔹 route params: /course/:id/lesson/:lessonSlug
   const { id, lessonSlug } = useParams<{ id: string; lessonSlug: string }>();
   const navigate = useNavigate();
 
-  // 🔹 course data coming from PHP
+  // ---------------------------------------------------------
+  // ✅ FIX: Robust User ID Retrieval ALIGNED with AuthContext
+  // ---------------------------------------------------------
+  const getCurrentUserId = (): number | null => {
+    try {
+      // 1. Primary Check: "silaylearn_user" object (used by your AuthProvider)
+      const userRaw = localStorage.getItem("silaylearn_user");
+      if (userRaw) {
+        const parsed = JSON.parse(userRaw);
+        // Look for dbId (the actual database ID)
+        if (parsed && parsed.dbId) return Number(parsed.dbId); 
+      }
+      
+      // FALLBACK 1: Check for old "user" object (for backward compatibility)
+      const oldUserRaw = localStorage.getItem("user");
+      if (oldUserRaw) {
+        const parsed = JSON.parse(oldUserRaw);
+        if (parsed && parsed.id) return Number(parsed.id); 
+      }
+
+      // FALLBACK 2: Check for direct "user_id" string
+      const userIdRaw = localStorage.getItem("user_id");
+      if (userIdRaw) return Number(userIdRaw);
+
+    } catch (e) {
+      console.error("Error parsing user ID from localStorage:", e);
+    }
+    return null; 
+  };
+  
+  // Get the current user ID to use for state and the component key
+  const currentUserId = getCurrentUserId(); 
+  
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarTab, setSidebarTab] = useState("content");
-  const [activeModule, setActiveModule] = useState<number | null>(null);
+  
+  // State restored to fix the compilation error
   const [moduleView, setModuleView] = useState<number | null>(null);
 
-const [moduleIndex, setModuleIndex] = useState(0);
-const [lessonIndex, setLessonIndex] = useState(0);
-const [completed, setCompleted] = useState<Set<string>>(new Set());
+  // State for modules/lessons
+  const [moduleIndex, setModuleIndex] = useState(0);
+  const [lessonIndex, setLessonIndex] = useState(0);
+  // Completed set is now keyed by user_id in localStorage
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
 
-// 🧠 load saved completed lessons (per user + course) from localStorage
-useEffect(() => {
-  if (!id) return;
+  // ✅ Ensures chat history is visually cleared on load/user change
+  useEffect(() => {
+    setChatMessages([]); 
+    
+    if (!currentUserId) {
+       console.warn("No user logged in. Progress and chat history will not be correctly managed.");
+    }
+  }, [id, currentUserId]); // Depend on ID AND the currentUserId for a clean slate
 
-  const userId = getUserId();
-  const storageKey = `completed_${userId}_${id}`;
-  const stored = localStorage.getItem(storageKey);
-  if (!stored) return;
+  // 🧠 load saved completed lessons (user-specific keys)
+  useEffect(() => {
+    if (!id || !currentUserId) return; // Use the new currentUserId
+    
+    const storageKey = `completed_${currentUserId}_${id}`; // Keyed by user_id
+    const stored = localStorage.getItem(storageKey);
+    if (!stored) return;
 
-  try {
-    const arr = JSON.parse(stored) as string[];
-    setCompleted(new Set(arr));
-    console.log("[completed] restored from localStorage:", arr);
-  } catch (e) {
-    console.error("Failed to parse saved completed lessons", e);
-  }
-}, [id]);
+    try {
+      const arr = JSON.parse(stored) as string[];
+      setCompleted(new Set(arr));
+    } catch (e) {
+      console.error("Failed to parse saved completed lessons", e);
+    }
+  }, [id, currentUserId]); // Depend on ID AND the currentUserId
 
-
-  // 🔹 parse "module-lesson" slug from URL (e.g. "0-1"), default to "0-0"
+  // 🔹 parse "module-lesson" slug from URL
   useEffect(() => {
     const slug = lessonSlug ?? "0-0";
     const [mStr, lStr] = slug.split("-");
-    const mIdx = Number(mStr) || 0;
-    const lIdx = Number(lStr) || 0;
-    setModuleIndex(mIdx);
-    setLessonIndex(lIdx);
+    setModuleIndex(Number(mStr) || 0);
+    setLessonIndex(Number(lStr) || 0);
   }, [lessonSlug]);
 
-
-  // 🔹 fetch course from PHP and map lessons → videoUrl
+  // 🔹 fetch course
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -154,7 +171,7 @@ useEffect(() => {
               title: lesson.lesson_title,
               duration: lesson.lesson_duration ?? "",
               type: (lesson.lesson_type ?? "video") as Lesson["type"],
-              videoUrl: lesson.lesson_directory_url ?? null, // ⬅️ local MP4 URL
+              videoUrl: lesson.lesson_directory_url ?? null,
             })),
           })),
         };
@@ -192,13 +209,11 @@ useEffect(() => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moduleIndex, lessonIndex]);
+  }, [moduleIndex, lessonIndex, courseData]);
 
   const next = () => {
     if (!courseData) return;
     const mod = courseData.modules;
-
     if (lessonIndex < mod[moduleIndex].lessons.length - 1) {
       setLessonIndex((li) => li + 1);
     } else if (moduleIndex < mod.length - 1) {
@@ -209,7 +224,6 @@ useEffect(() => {
 
   const prev = () => {
     if (!courseData) return;
-
     if (lessonIndex > 0) {
       setLessonIndex((li) => li - 1);
     } else if (moduleIndex > 0) {
@@ -220,104 +234,81 @@ useEffect(() => {
     }
   };
   
-const updateCourseProgress = async (
-  newProgress: number,
-  lessonsFinished: number
-) => {
-  const userId = getUserId();
+  const updateCourseProgress = async (
+    newProgress: number,
+    lessonsFinished: number
+  ) => {
+    // Use the variable retrieved outside the function body
+    if (!currentUserId) { 
+      console.warn("Cannot update progress: User not logged in");
+      return;
+    }
 
-  console.log("[updateCourseProgress] payload", {
-    userId,
-    courseId: id,
-    newProgress,
-    lessonsFinished,
-  });
+    try {
+      const formData = new FormData();
+      formData.append("user_id", String(currentUserId)); // Correct user_id
+      formData.append("course_id", String(id));
+      formData.append("progress", String(newProgress));
+      formData.append("lessons_finished", String(lessonsFinished));
+      formData.append("total_lessons", String(totalLessons));
 
-  if (!id) {
-    console.warn("[updateCourseProgress] Missing courseId");
-    return;
-  }
+      await axios.post(UPDATE_PROGRESS_API, formData);
+    } catch (err) {
+      console.error("[updateCourseProgress] Failed to update", err);
+    }
+  };
 
+  const toggleComplete = () => {
+    const key = `${moduleIndex}-${lessonIndex}`;
 
-  try {
-    // 🔹 Send as regular form data so PHP can read via $_POST
-    const formData = new FormData();
-    formData.append("user_id", String(userId));
-    formData.append("course_id", String(id));
-    formData.append("progress", String(newProgress));
-    formData.append("lessons_finished", String(lessonsFinished));
-    formData.append("total_lessons", String(totalLessons));
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
 
-    const res = await axios.post(UPDATE_PROGRESS_API, formData);
-    console.log("[updateCourseProgress] success", res.data);
-  } catch (err) {
-    console.error("[updateCourseProgress] Failed to update course progress", err);
-  }
-};
+      const newLessonsFinished = next.size;
+      const newProgress =
+        totalLessons > 0
+          ? Math.round((newLessonsFinished / totalLessons) * 100)
+          : 0;
 
+      updateCourseProgress(newProgress, newLessonsFinished);
 
-const toggleComplete = () => {
-  const key = `${moduleIndex}-${lessonIndex}`;
+      if (id && currentUserId) { // Use the variable
+          const storageKey = `completed_${currentUserId}_${id}`; 
+          const arr = Array.from(next);
+          localStorage.setItem(storageKey, JSON.stringify(arr));
+      }
 
-  setCompleted((prev) => {
-    const next = new Set(prev);
+      return next;
+    });
+  };
 
-    if (next.has(key)) {
-      next.delete(key);
-    } else {
+  const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
+    const key = `${mIdx}-${lIdx}`;
+    setCompleted((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
       next.add(key);
-    }
+      const newLessonsFinished = next.size;
+      const newProgress =
+        totalLessons > 0
+          ? Math.round((newLessonsFinished / totalLessons) * 100)
+          : 0;
+      updateCourseProgress(newProgress, newLessonsFinished);
+      
+       if (id && currentUserId) { // Use the variable
+          const storageKey = `completed_${currentUserId}_${id}`;
+          const arr = Array.from(next);
+          localStorage.setItem(storageKey, JSON.stringify(arr));
+      }
 
-    const newLessonsFinished = next.size;
-    const newProgress =
-      totalLessons > 0
-        ? Math.round((newLessonsFinished / totalLessons) * 100)
-        : 0;
-
-    // 🔁 still update counts in DB
-    updateCourseProgress(newProgress, newLessonsFinished);
-
-    // 💾 save completed lessons in localStorage using SAME helper
-    if (id) {
-      const userId = getUserId();
-      const storageKey = `completed_${userId}_${id}`;
-      const arr = Array.from(next);
-      localStorage.setItem(storageKey, JSON.stringify(arr));
-      console.log("[completed] saved to localStorage:", arr);
-    }
-
-    return next;
-  });
-};
-
-
-
-
-const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
-  const key = `${mIdx}-${lIdx}`;
-
-  setCompleted((prev) => {
-    // already counted → do nothing
-    if (prev.has(key)) return prev;
-
-    const next = new Set(prev);
-    next.add(key);
-
-    const newLessonsFinished = next.size;
-    const newProgress =
-      totalLessons > 0
-        ? Math.round((newLessonsFinished / totalLessons) * 100)
-        : 0;
-
-    // 🔁 save BOTH to DB for this user + this course
-    updateCourseProgress(newProgress, newLessonsFinished);
-
-    return next;
-  });
-};
-
-
-
+      return next;
+    });
+  };
 
   const chatInputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
@@ -325,62 +316,70 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
   }, [sidebarTab]);
 
   // --------------------------
-  // ✅ AI CHAT STATES
+  // AI CHAT STATES
   // --------------------------
   const [chatMessages, setChatMessages] = useState<
     { sender: string; text: string }[]
   >([]);
   const [chatInput, setChatInput] = useState("");
   const isSendingRef = useRef(false);
-
-  // Typing indicator
   const [isTyping, setIsTyping] = useState(false);
 
   // --------------------------
-  // ✅ sendChat() - Fixed user_id parsing
+  // Chat Send Function (User ID safe)
   // --------------------------
   const sendChat = async () => {
     if (!chatInput.trim() || isSendingRef.current) return;
-    isSendingRef.current = true;
+    
+    // 1. Get User ID safely
+    if (!currentUserId) {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: "assistant",
+          text: "Please sign in to use the AI assistant.",
+        },
+      ]);
+      setChatInput(""); 
+      return;
+    }
 
+    isSendingRef.current = true;
     const userMessage = chatInput.trim();
+    
     setChatMessages((prev) => [
       ...prev,
       { sender: "user", text: userMessage },
     ]);
     setChatInput("");
-
     setIsTyping(true);
 
     try {
-      const rawUserId = localStorage.getItem("user_id");
-      const userId = rawUserId ? parseInt(rawUserId, 10) : 9;
-
       const res = await axios.post("http://127.0.0.1:5000/chat", {
-        user_id: userId,
+        user_id: currentUserId, // ✅ Sending correct ID
         message: userMessage,
         lesson_title: currentLesson?.title ?? "",
         language: "en",
       });
 
-      const reply = res.data.reply || "No response";
+      const reply = res?.data?.reply ?? "No response from AI.";
       setChatMessages((prev) => [
         ...prev,
         { sender: "assistant", text: reply },
       ]);
-      setIsTyping(false);
     } catch (err) {
+      console.error("[sendChat] error", err);
       setChatMessages((prev) => [
         ...prev,
         { sender: "assistant", text: "Error: unable to reach AI server." },
       ]);
+    } finally {
       setIsTyping(false);
+      isSendingRef.current = false;
     }
-
-    isSendingRef.current = false;
   };
 
-  // 🔒 guard AFTER all hooks
+  // Guard clause
   if (loading || !courseData || !currentModule || !currentLesson) {
     return (
       <div className="w-full h-screen bg-background flex items-center justify-center">
@@ -392,9 +391,14 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
   }
 
   return (
-    <div className="w-full h-screen bg-background text-slate-900 flex flex-col overflow-hidden">
-      {/* Top Navigation */}
-      <nav className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0 z-50">
+    // -----------------------------------------------------------------
+    // ✅ FIX: Force Component Reload when User or Course changes
+    // -----------------------------------------------------------------
+    <div 
+      key={`user-${currentUserId}-course-${id}`} 
+      className="w-full h-screen bg-background text-slate-900 flex flex-col overflow-hidden"
+    >
+         <nav className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0 z-50">
         <div className="flex items-center gap-4">
           <button
           onClick={() => navigate(`/courses/${id}`)}
@@ -449,7 +453,7 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
               <button
                 onClick={() => {
                   setSidebarTab("content");
-                  setModuleView(null);
+                  setModuleView(null); 
                 }}
                 className={`flex-1 py-2 rounded-md text-sm font-medium ${
                   sidebarTab === "content"
