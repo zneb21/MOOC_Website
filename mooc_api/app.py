@@ -24,7 +24,7 @@ DB_CONFIG = {
 }
 
 # Gemini configuration
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDy8OK9G95rSOKeLD-eTkWYlnCkcO2WZuI")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = "gemini-2.5-flash"
 USE_SDK = True  # switch to False to use REST
 
@@ -166,6 +166,10 @@ You help Filipino MOOC students by:
 - NEVER including sensitive data
 - NEVER exposing raw internal chat logs
 
+Formatting rules:
+- DO NOT use Markdown.
+- DO NOT use bold (** **), italics (* * / _ _), backticks, or code blocks.
+- Output PLAIN TEXT ONLY.
 User says:
 {user_msg}
 
