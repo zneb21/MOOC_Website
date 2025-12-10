@@ -385,7 +385,7 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
   const [isTyping, setIsTyping] = useState(false);
 
   // --------------------------
-  // ✅ sendChat() - Fixed user_id parsing
+  // ✅ sendChat() - Fixed user_id parsing & Added user check
   // --------------------------
   const sendChat = async () => {
     if (!chatInput.trim() || isSendingRef.current) return;
@@ -674,21 +674,22 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
                             className="flex items-start gap-2 mb-2 max-w-[90%]"
                           >
                             {/* Avatar */}
+                            {/* Assuming you have a default assistant image at /assistant.jpg */}
                             <img
                               src="/assistant.jpg"
                               alt="AI Avatar"
-                              className="w-8 h-8 rounded-full object-cover select-none"
+                              className="w-8 h-8 rounded-full object-cover select-none flex-shrink-0"
                             />
 
-                            {/* Assistant bubble */}
-                            <div className="text-xs p-2 rounded-md bg-slate-200 dark:bg-zinc-700 dark:text-zinc-200 text-slate-800">
+                            {/* Assistant bubble (Rounded-lg for softer look) */}
+                            <div className="text-xs p-2 rounded-lg bg-slate-200 dark:bg-zinc-700 dark:text-zinc-200 text-slate-800">
                               {msg.text}
                             </div>
                           </div>
                         ) : (
                           <div
                             key={idx}
-                            className="text-xs mb-2 p-2 rounded-md max-w-[85%] bg-primary text-white ml-auto"
+                            className="text-xs mb-2 p-2 rounded-lg max-w-[85%] bg-primary text-white ml-auto"
                           >
                             {msg.text}
                           </div>
@@ -720,6 +721,8 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
                     <div className="text-xs text-slate-600 dark:text-zinc-400 mb-2">
                       Type a question about the lesson.
                     </div>
+                    
+                    {/* 👇🏼 FIX: Added px-3 and changed py-1.5 to py-2 for better spacing */}
                     <div className="flex gap-2">
                       <input
                         ref={chatInputRef}
@@ -730,13 +733,20 @@ const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
                         onKeyDown={(e) => {
                           if (e.key === "Enter") sendChat();
                         }}
-                        className="flex-1 rounded-md border border-slate-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-1.5 text-sm mb-3"
+                        // ✅ FIX: Added px-3 for horizontal padding and py-2 for height
+                        className="flex-1 rounded-md border border-slate-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-2 px-3 text-sm" 
+                        disabled={isSendingRef.current || !currentUserId}
                       />
 
-                      <Button size="sm" onClick={sendChat}>
+                      <Button 
+                        size="sm" 
+                        onClick={sendChat}
+                        disabled={!chatInput.trim() || isSendingRef.current || !currentUserId}
+                      >
                         Send
                       </Button>
                     </div>
+                    {/* 👆🏼 END FIX */}
                   </div>
 
                   <div className="text-xs text-slate-400 dark:text-zinc-500">
