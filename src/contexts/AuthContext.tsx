@@ -1,15 +1,24 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-// ✅ PHP auth API base (adjust path if needed)
+// =======================================================================
+// ✅ API CONFIGURATION: HYBRID BACKEND
+// =======================================================================
+// PHP auth API base (Login, Register, Update Profile)
 const AUTH_API_BASE = "http://localhost/mooc_api/api/auth";
+// NEW: Flask API base for secure endpoints (Delete Account, Reset Password)
+const FLASK_API_BASE = "http://localhost:5000"; 
+// =======================================================================
 
 
-// CHANGE: Replace with Database User type when integrating
+// -----------------------------------------------------------------------
+// 1. TYPE DEFINITIONS
+// -----------------------------------------------------------------------
+
 export interface User {
   // Frontend/session ID (your existing UUID)
   id: string;
 
-  // ✅ Real database users.id (INT) – optional because old mock logins won't have it
+  // Actual database users.id (INT) - used as the "token"
   dbId?: number;
 
   email: string;
@@ -17,6 +26,8 @@ export interface User {
   role: "learner" | "instructor";
   avatarUrl?: string;
   createdAt: string;
+  // Stores the string ID of the selected avatar 
+  avatarId?: string | number | null; 
 }
 
 
@@ -26,8 +37,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   register: (data: RegisterData) => Promise<{ error: string | null }>;
   logout: () => void;
-  updateProfile: (data: Partial<User>) => Promise<{ error: string | null }>;
+  updateProfile: (data: { fullName?: string, avatarId?: string | number | null }) => Promise<{ error: string | null }>; 
   resetPassword: (email: string) => Promise<{ error: string | null }>;
+  deleteAccount: (password: string) => Promise<{ error: string | null }>; 
 }
 
 interface RegisterData {
@@ -55,11 +67,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem("silaylearn_user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse user from localStorage:", e);
+        localStorage.removeItem("silaylearn_user");
+        localStorage.removeItem("token");
+      }
     }
     setIsLoading(false);
   }, []);
 
+// -----------------------------------------------------------------------
+// 2. CORE AUTH FUNCTIONS (PHP BACKED)
+// -----------------------------------------------------------------------
+
+// --- LOGIN IMPLEMENTATION (PHP: /login.php) ---
 const login = async (
   email: string,
   password: string
@@ -100,7 +123,6 @@ const login = async (
       console.warn("Non-JSON login response:", raw);
     }
 
-    // ✅ match login.php shape: json.user.id, json.user.email, etc.
     if (!json.user || typeof json.user.id === "undefined") {
       console.error("Login response missing user or user.id:", json);
       return { error: "Login succeeded but no user data returned from server." };
@@ -111,27 +133,27 @@ const login = async (
     // Build frontend user object
     const loggedInUser: User = {
       id: crypto.randomUUID(),           // frontend session id
-      dbId: dbUserId,                     // ✅ actual DB users.id
+      dbId: dbUserId,                     // actual DB users.id
       email: json.user.email || email,
       fullName: json.user.name || email.split("@")[0],
       role: (json.user.role === "instructor" ? "instructor" : "learner") as
         | "learner"
         | "instructor",
       createdAt: new Date().toISOString(),
+      avatarId: json.user.avatarId || null, 
     };
     
-    // --- START CRITICAL FIX ---
-    // Explicitly clear legacy/old session keys to prevent LessonView.tsx from loading them
+    // Clear legacy keys
     localStorage.removeItem("user");
     localStorage.removeItem("user_id");
     localStorage.removeItem("token");
-    // --- END CRITICAL FIX ---
-
+    
     setUser(loggedInUser);
     localStorage.setItem("silaylearn_user", JSON.stringify(loggedInUser));
     
-    if (json.token) {
-        localStorage.setItem("token", json.token);
+    // Store the DB ID as the "token" for simple authentication flow
+    if (json.user.id) {
+        localStorage.setItem("token", String(json.user.id));
     }
 
     return { error: null };
@@ -140,8 +162,10 @@ const login = async (
     return { error: "Unexpected error during login. Please try again." };
   }
 };
+// --- END LOGIN IMPLEMENTATION ---
 
-// ✅ Real register using PHP API, storing DB users.id into user.dbId
+
+// --- REGISTER IMPLEMENTATION (PHP: /register.php) ---
 const register = async (data: RegisterData): Promise<{ error: string | null }> => {
   try {
     if (!data.email || !data.password || !data.fullName) {
@@ -154,7 +178,7 @@ const register = async (data: RegisterData): Promise<{ error: string | null }> =
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name: data.fullName,      // PHP register.php expects "name"
+        name: data.fullName,     
         email: data.email,
         password: data.password,
         role: data.role,
@@ -184,29 +208,31 @@ const register = async (data: RegisterData): Promise<{ error: string | null }> =
       console.warn("Non-JSON register response:", raw);
     }
 
-    // ✅ userId from PHP = your DB `users.id`
     const dbUserId = json.userId;
     if (!dbUserId) {
       return { error: "Registration succeeded but no userId returned from server." };
     }
 
     const newUser: User = {
-      id: crypto.randomUUID(),          // frontend UUID (for your app)
-      dbId: Number(dbUserId),           // ✅ DB users.id
+      id: crypto.randomUUID(),          // frontend UUID 
+      dbId: Number(dbUserId),           // DB users.id
       email: data.email,
       fullName: data.fullName,
       role: data.role,
       createdAt: new Date().toISOString(),
+      avatarId: null, 
     };
     
-    // --- START CRITICAL FIX (on register too) ---
+    // Clear legacy keys
     localStorage.removeItem("user");
     localStorage.removeItem("user_id");
     localStorage.removeItem("token");
-    // --- END CRITICAL FIX ---
 
     setUser(newUser);
     localStorage.setItem("silaylearn_user", JSON.stringify(newUser));
+    
+    // Store the DB ID as the "token"
+    localStorage.setItem("token", String(dbUserId));
 
     return { error: null };
   } catch (err) {
@@ -214,44 +240,174 @@ const register = async (data: RegisterData): Promise<{ error: string | null }> =
     return { error: "Unexpected error during registration. Please try again." };
   }
 };
+// --- END REGISTER IMPLEMENTATION ---
 
 
-  // CHANGE: Replace with database signOut
+// --- LOGOUT IMPLEMENTATION ---
   const logout = () => {
     setUser(null);
-    // --- START CRITICAL FIX ---
     localStorage.removeItem("silaylearn_user");
     localStorage.removeItem("user");
     localStorage.removeItem("user_id");
-    localStorage.removeItem("token");
-    // --- END CRITICAL FIX ---
+    localStorage.removeItem("token"); 
   };
+// --- END LOGOUT IMPLEMENTATION ---
 
-  // CHANGE: Replace with database update
-  const updateProfile = async (data: Partial<User>): Promise<{ error: string | null }> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    if (!user) {
-      return { error: "No user logged in" };
+// --- UPDATE PROFILE IMPLEMENTATION (PHP: /update_profile.php) ---
+  const UPDATE_PROFILE_API = `${AUTH_API_BASE}/update_profile.php`;
+
+  const updateProfile = async (
+    data: { fullName?: string, avatarId?: string | number | null }
+  ): Promise<{ error: string | null }> => {
+    if (!user || !user.dbId) {
+      return { error: "User not logged in or missing database ID" };
+    }
+    
+    // Get the token (user DB ID) for the Authorization header
+    const token = localStorage.getItem("token");
+    if (!token) {
+        return { error: "Authentication token is missing. Please log in again." };
     }
 
-    const updatedUser = { ...user, ...data };
-    setUser(updatedUser);
-    localStorage.setItem("silaylearn_user", JSON.stringify(updatedUser));
-    return { error: null };
-  };
+    try {
+        const res = await fetch(UPDATE_PROFILE_API, {
+            method: "POST", 
+            headers: {
+                "Content-Type": "application/json",
+                // Send the token in the required Bearer format
+                "Authorization": `Bearer ${token}`, 
+            },
+            body: JSON.stringify({
+                fullName: data.fullName, 
+                avatarId: data.avatarId ?? null, 
+            }),
+        });
 
-  // CHANGE: Replace with database resetPasswordForEmail
+        const raw = await res.text();
+
+        if (!res.ok) {
+            console.error("Update Profile API error:", res.status, raw);
+            let message = "Profile update failed.";
+            try {
+                const json = raw ? JSON.parse(raw) : null;
+                if (json?.message) message = json.message;
+            } catch { /* ignore parse error */ }
+            return { error: message };
+        }
+
+        let json: any = {};
+        try {
+            json = raw ? JSON.parse(raw) : {};
+        } catch { console.warn("Non-JSON update response:", raw); }
+        
+        // Use the data returned from the server (json.user) to update the session user
+        const updatedUser: User = {
+            ...user, 
+            fullName: json.user?.name || data.fullName || user.fullName, 
+            avatarId: json.user?.avatarId ?? null, 
+        };
+
+        // CRITICAL: Update the state and persist to local storage
+        setUser(updatedUser);
+        localStorage.setItem("silaylearn_user", JSON.stringify(updatedUser));
+        
+        return { error: null };
+    } catch (err) {
+        console.error("Update profile error:", err);
+        return { error: "Unexpected error during profile update. Please try again." };
+    }
+  };
+// --- END UPDATE PROFILE IMPLEMENTATION ---
+
+
+// -----------------------------------------------------------------------
+// 3. SECURE FUNCTIONS (FLASK BACKED)
+// -----------------------------------------------------------------------
+
+// --- RESET PASSWORD IMPLEMENTATION (FLASK: /api/auth/forgot-password) ---
   const resetPassword = async (email: string): Promise<{ error: string | null }> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Calling the Flask backend
+    const RESET_PASSWORD_API = `${FLASK_API_BASE}/api/auth/forgot-password`; 
 
-    if (!email) {
-      return { error: "Email is required" };
+    try {
+        const res = await fetch(RESET_PASSWORD_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+        });
+
+        const raw = await res.text();
+
+        if (!res.ok) {
+            let message = "Password reset failed.";
+            try {
+                const json = raw ? JSON.parse(raw) : null;
+                if (json?.message) message = json.message;
+            } catch { /* ignore */ }
+            return { error: message };
+        }
+        
+        return { error: null };
+    } catch (error) {
+        console.error("Reset password network error:", error);
+        return { error: "A network error occurred while requesting the reset link. Ensure Flask server is running on port 5000." };
+    }
+  };
+
+
+// --- DELETE ACCOUNT IMPLEMENTATION (FLASK: /api/auth/delete) ---
+  const DELETE_ACCOUNT_API = `${FLASK_API_BASE}/api/auth/delete`; 
+
+  const deleteAccount = async (password: string): Promise<{ error: string | null }> => {
+    if (!user || !user.dbId || !user.email) {
+      return { error: "User not logged in or missing user ID/email." };
+    }
+    
+    // Get the token (user DB ID) for the Authorization header
+    const token = localStorage.getItem("token");
+    if (!token) {
+        return { error: "Authentication token is missing. Please log in again." };
     }
 
-    // Mock - just return success
-    return { error: null };
+
+    try {
+      // Calling the Flask server URL
+      const response = await fetch(DELETE_ACCOUNT_API, {
+        method: "DELETE", // Use DELETE method
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, 
+        },
+        body: JSON.stringify({
+          dbId: user.dbId,
+          email: user.email,
+          password: password, // Current password for confirmation
+        }),
+      });
+
+      const raw = await response.text();
+
+      if (!response.ok) {
+        console.error("Delete Account API error:", response.status, raw);
+        let message = "Deletion failed due to server error.";
+        try {
+            const errorData = raw ? JSON.parse(raw) : null;
+            if (errorData?.message) message = errorData.message;
+        } catch { /* ignore parse error */ }
+        return { error: message };
+      }
+
+      // Successful deletion means we clear the session
+      logout(); 
+      return { error: null };
+
+    } catch (err) {
+      console.error("Delete account network error:", err);
+      return { error: "A network error occurred during account deletion. Ensure Flask server is running on port 5000." };
+    }
   };
+// --- END DELETE ACCOUNT IMPLEMENTATION ---
 
   return (
     <AuthContext.Provider
@@ -263,6 +419,7 @@ const register = async (data: RegisterData): Promise<{ error: string | null }> =
         logout,
         updateProfile,
         resetPassword,
+        deleteAccount,
       }}
     >
       {children}

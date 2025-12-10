@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -9,6 +9,20 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  // NEW: Import icons for the avatar system
+  Smile,
+  Heart,
+  Star,
+  Zap,
+  Leaf,
+  Coffee,
+  Music,
+  Palette,
+  Globe,
+  Sun,
+  Moon,
+  Sparkles,
+  User as UserIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,14 +47,55 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth(); // Navbar automatically re-renders when 'user' changes
   const { toast } = useToast();
+
+  // NEW: Configuration to map avatarId to Icons and Colors
+  // This matches the logic in your AvatarSelector.tsx
+  const avatarConfig = useMemo(() => ({
+    smile: { icon: Smile, bg: "bg-secondary" },
+    heart: { icon: Heart, bg: "bg-coral" },
+    star: { icon: Star, bg: "bg-gold" },
+    zap: { icon: Zap, bg: "bg-accent" },
+    leaf: { icon: Leaf, bg: "bg-primary" },
+    coffee: { icon: Coffee, bg: "bg-coral-light" },
+    music: { icon: Music, bg: "bg-teal" },
+    palette: { icon: Palette, bg: "bg-gold-light" },
+    book: { icon: BookOpen, bg: "bg-primary" },
+    globe: { icon: Globe, bg: "bg-teal-light" },
+    sun: { icon: Sun, bg: "bg-secondary" },
+    sparkles: { icon: Sparkles, bg: "bg-gold" },
+  }), []);
+
+  // Helper to get the correct Avatar component based on ID
+  const getAvatarContent = () => {
+    if (!user) return null;
+
+    // 1. If user has a selected Avatar ID (e.g. 'smile', 'heart')
+    if (user.avatarId && avatarConfig[user.avatarId as keyof typeof avatarConfig]) {
+      const config = avatarConfig[user.avatarId as keyof typeof avatarConfig];
+      const IconComponent = config.icon;
+      
+      return (
+        <AvatarFallback className={cn(config.bg, "text-primary-foreground")}>
+          <IconComponent className="w-5 h-5" />
+        </AvatarFallback>
+      );
+    }
+
+    // 2. Fallback: Image URL or Initials
+    return (
+      <>
+        <AvatarImage src={user.avatarUrl} />
+        <AvatarFallback className="bg-primary text-primary-foreground text-base">
+          {getInitials(user.fullName)}
+        </AvatarFallback>
+      </>
+    );
+  };
 
   // Inject CSS directly into <head>
   useEffect(() => {
-    // Determine the color of the separator based on the current theme (assuming dark mode uses a light border)
-    // We'll use a CSS variable if available, but for simplicity here, we'll use a neutral gray that works on both.
-    // Replace '200' with a lighter value for dark mode, or darker for light mode if you can read the theme state.
     const separatorColor = 'rgba(0, 0, 0, 0.1)'; 
 
     const css = `
@@ -72,10 +127,9 @@ const Navbar = () => {
         transition: all 0.25s ease;
       }
       
-      /* NEW: Custom separator style for fade-off effect */
       .fade-separator {
         height: 1px;
-        margin: 6px 12px; /* Adjust margin to shorten the line */
+        margin: 6px 12px;
         background: linear-gradient(
           to right,
           transparent 0%,
@@ -83,7 +137,6 @@ const Navbar = () => {
           ${separatorColor} 80%,
           transparent 100%
         );
-        /* Clear default separator styles that might interfere */
         background-color: transparent !important;
         border: none !important;
       }
@@ -160,11 +213,9 @@ const Navbar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-3 px-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={user.avatarUrl} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-base">
-                        {getInitials(user.fullName)}
-                      </AvatarFallback>
+                    {/* UPDATED: Dynamic Avatar rendering */}
+                    <Avatar className="w-10 h-10 border border-border/50">
+                      {getAvatarContent()}
                     </Avatar>
 
                     <span className="text-base font-medium max-w-[150px] truncate">
@@ -185,7 +236,6 @@ const Navbar = () => {
                     <p className="text-xs text-foreground opacity-70">{user.email}</p>
                   </div>
 
-                  {/* UPDATED: Apply the new fade-separator class */}
                   <DropdownMenuSeparator className="fade-separator" />
 
                   <DropdownMenuItem asChild>
@@ -209,7 +259,6 @@ const Navbar = () => {
                     </Link>
                   </DropdownMenuItem>
 
-                  {/* UPDATED: Apply the new fade-separator class */}
                   <DropdownMenuSeparator className="fade-separator" />
 
                   <DropdownMenuItem

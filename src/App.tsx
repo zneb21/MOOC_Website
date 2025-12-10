@@ -15,8 +15,9 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
-import LessonView from "./pages/LessonView"; // ✅ add import
-
+import LessonView from "./pages/LessonView";
+import ResetPasswordPage from './pages/ResetPasswordPage'; // Already imported
+import ForgotPassword from './pages/ForgotPassword'; // <-- NEW IMPORT
 
 const queryClient = new QueryClient();
 
@@ -34,11 +35,17 @@ const App = () => (
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/:id" element={<CoursePreview />} />
 
-          {/* ✅ NEW: Lesson viewer route */}
+          {/* Lesson viewer route */}
           <Route path="/course/:id/lesson/:lessonSlug" element={<LessonView />} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          
+          {/* ✅ NEW: Password Reset Route - Public access */}
+          {/* This path handles the link sent in the email: /reset-password?token=... */}
+          <Route path="/forgot-password" element={<ForgotPassword />} /> {/* <-- NEW ROUTE */}
+          <Route path="/reset-password" element={<ResetPasswordPage />} /> 
+
           {/* For User Dashboard chuchu */}
           <Route
               path="/dashboard"
