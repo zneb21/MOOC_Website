@@ -492,22 +492,31 @@ def reset_password():
         db.close()
 
 @app.route("/api/auth/delete", methods=["DELETE"])
+# Note: Ensure you have 'from flask import request, jsonify' and 'import bcrypt'
 def delete_account():
-    data = request.json
-    user_id = data.get("user_id")
+    # FIX 1: Use get_json() for safer JSON parsing
+    data = request.get_json() 
+    
+    # FIX 2: Correct field name to 'dbId' to match the frontend
+    db_id_from_request = data.get("dbId")
     email = data.get("email")
     password = data.get("password")
 
-    if not all([user_id, email, password]):
+    if not all([db_id_from_request, email, password]):
+        # This will now correctly trigger if any field is missing
         return jsonify({"message": "Missing required fields."}), 400
 
+ 
     db = get_db()
+        
     cursor = db.cursor(dictionary=True) 
     
     try:
-        db_id = int(user_id) 
+        # Cast the string ID to an integer for database queries
+        db_id = int(db_id_from_request) 
 
         # 1. Verify credentials
+        # Use the corrected db_id variable in the query
         cursor.execute("SELECT password FROM users WHERE id=%s AND email=%s", (db_id, email))
         user_record = cursor.fetchone()
 
@@ -525,7 +534,7 @@ def delete_account():
             print(f"ERROR: Bcrypt check failed for ID {db_id}. Hash issue: {e}")
             return jsonify({"message": "Invalid password confirmation (hashing error). Please check server logs."}), 401
             
-        # 2. Perform Deletion
+        # 2. Perform Deletion (Transaction)
         db.autocommit = False 
         cursor.execute("DELETE FROM chat_history WHERE user_id=%s", (db_id,))
         cursor.execute("DELETE FROM users WHERE id=%s", (db_id,))
@@ -540,8 +549,8 @@ def delete_account():
     except ValueError:
         return jsonify({"message": "Invalid user ID format."}), 400
     finally:
-        cursor.close()
-        db.close()
+        if cursor: cursor.close()
+        if db: db.close()
 
 
 if __name__ == "__main__":

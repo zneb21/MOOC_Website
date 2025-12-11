@@ -119,8 +119,8 @@ try {
     $stmt->execute($params);
     
     // 4. Fetch the updated user data to return to the frontend
-    // CRITICAL for session persistence: fetch the new data back
-    $stmt = $pdo->prepare("SELECT id, name, email, role, avatar_id FROM users WHERE id = ?");
+    // CRITICAL FIX: Added 'created_at' to the SELECT statement
+    $stmt = $pdo->prepare("SELECT id, name, email, role, avatar_id, created_at FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $updatedUser = $stmt->fetch();
     
@@ -133,9 +133,11 @@ try {
             "user" => [
                 "id" => $updatedUser['id'],
                 "email" => $updatedUser['email'],
-                "name" => $updatedUser['name'],
+                // FIX: Renamed key to 'fullName' to match the React interface in AuthContext.tsx
+                "fullName" => $updatedUser['name'], 
                 "role" => $updatedUser['role'],
-                "avatarId" => $updatedUser['avatar_id'] // This must be returned
+                "avatarId" => $updatedUser['avatar_id'],
+                "createdAt" => $updatedUser['created_at'] // <-- NEW: Now included in the response
             ]
         ]);
     } else {

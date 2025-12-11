@@ -222,7 +222,7 @@ const register = async (data: RegisterData): Promise<{ error: string | null }> =
       createdAt: new Date().toISOString(),
       avatarId: null, 
     };
-    
+    localStorage.setItem("user", JSON.stringify(newUser));
     // Clear legacy keys
     localStorage.removeItem("user");
     localStorage.removeItem("user_id");

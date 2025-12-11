@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import AvatarSelector from "./AvatarSelector"; // Assuming this component exists
-import { format } from "date-fns"; 
+import { format, parseISO } from "date-fns"; // <<<--- 1. ADDED parseISO
 
 const ProfileForm = () => {
   const authContext = useAuth();
@@ -145,7 +145,10 @@ const ProfileForm = () => {
             <div className="h-12 px-4 flex items-center bg-muted/50 rounded-lg text-foreground/80">
               <span className="text-sm">
                 {user?.createdAt
-                  ? format(new Date(user.createdAt), "MMMM dd, yyyy")
+                  ? format(
+                      parseISO(user.createdAt), // <<<--- 2. CHANGED new Date() to parseISO()
+                      "MMMM dd, yyyy"
+                    )
                   : "N/A"}
               </span>
             </div>
