@@ -20,12 +20,13 @@ const isValidEmail = (email: string) => {
 
 const Register = () => {
   const { toast } = useToast();
-  const { register, user } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [role, setRole] = useState<"learner" | "instructor">("learner"); 
+  const [role, setRole] = useState<"learner" | "instructor">("learner");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -81,8 +82,8 @@ const Register = () => {
         body: JSON.stringify({
           name: formData.fullName,
           email: formData.email,
-          password: formData.password, 
-          role: role, 
+          password: formData.password,
+          role: role,
         }),
       });
 
@@ -105,12 +106,9 @@ const Register = () => {
         try {
           const errorData = await response.json();
           if (errorData.message) {
-            // optional: show backend message instead
             errorMessage = errorData.message;
           }
-        } catch (e) {
-          // ignore JSON parse errors, keep friendly message
-        }
+        } catch (e) {}
 
         toast({
           title: "Email Already Registered",
@@ -140,13 +138,12 @@ const Register = () => {
           variant: "destructive",
         });
       }
-
-
     } catch (error) {
       console.error("Registration error:", error);
       toast({
         title: "Network Error",
-        description: "Could not connect to the server. Please ensure your XAMPP Apache service is running.",
+        description:
+          "Could not connect to the server. Please ensure your XAMPP Apache service is running.",
         variant: "destructive",
       });
     } finally {
@@ -155,76 +152,95 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center py-12 px-4">
+      <main className="pt-16 lg:pt-20 min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
+        {/* About-page ambience */}
+        <div className="absolute inset-0 -z-10 bg-emerald-950/90" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-black/55 via-emerald-950/70 to-black/55" />
+        <div className="absolute -top-28 left-12 -z-10 w-80 h-80 bg-[#F4B942]/12 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 -z-10 w-72 h-72 bg-teal-400/12 rounded-full blur-3xl" />
+        <div className="absolute inset-0 -z-10 opacity-[0.07] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/30 pointer-events-none" />
+
         <div className="w-full max-w-md">
-          {/* Card */}
-          <div className="bg-card rounded-2xl shadow-medium p-8 animate-scale-in">
+          {/* Glass Card */}
+          <div className="relative rounded-3xl bg-black/20 backdrop-blur-2xl border border-white/10 shadow-[0_28px_90px_rgba(0,0,0,0.55)] p-7 sm:p-8 overflow-hidden">
+            <div className="pointer-events-none absolute -inset-x-24 -inset-y-24 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-30" />
+
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4">
-                <GraduationCap className="w-8 h-8 text-primary-foreground" />
+            <div className="text-center mb-8 relative">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 mb-3 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+                <GraduationCap className="w-7 h-7 text-[#F4B942]" />
               </div>
-              <h1 className="font-display text-2xl font-bold text-foreground mb-2">
+              <h1 className="font-display text-2xl font-bold text-white mb-2">
                 Create Account
               </h1>
-              <p className="text-muted-foreground">
-                Join SilayLearn and start your journey
-              </p>
+              <p className="text-white/65">Join SilayLearn and start your journey</p>
             </div>
 
             {/* Role Selection */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="grid grid-cols-2 gap-3 mb-6 relative">
               <button
                 type="button"
                 onClick={() => setRole("learner")}
                 className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                  "flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all",
                   role === "learner"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
+                    ? "border-emerald-300/30 bg-emerald-400/10 ring-1 ring-emerald-300/20"
+                    : "border-white/10 bg-white/5 hover:bg-white/8 hover:border-white/20"
                 )}
               >
-                <User className={cn(
-                  "w-6 h-6",
-                  role === "learner" ? "text-primary" : "text-muted-foreground"
-                )} />
-                <span className={cn(
-                  "text-sm font-medium",
-                  role === "learner" ? "text-primary" : "text-muted-foreground"
-                )}>
+                <User
+                  className={cn(
+                    "w-6 h-6",
+                    role === "learner" ? "text-emerald-200" : "text-white/60"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    role === "learner" ? "text-white" : "text-white/70"
+                  )}
+                >
                   Learner
                 </span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setRole("instructor")}
                 className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+                  "flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all",
                   role === "instructor"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
+                    ? "border-[#F4B942]/35 bg-[#F4B942]/10 ring-1 ring-[#F4B942]/20"
+                    : "border-white/10 bg-white/5 hover:bg-white/8 hover:border-white/20"
                 )}
               >
-                <BookOpen className={cn(
-                  "w-6 h-6",
-                  role === "instructor" ? "text-primary" : "text-muted-foreground"
-                )} />
-                <span className={cn(
-                  "text-sm font-medium",
-                  role === "instructor" ? "text-primary" : "text-muted-foreground"
-                )}>
+                <BookOpen
+                  className={cn(
+                    "w-6 h-6",
+                    role === "instructor" ? "text-[#F4B942]" : "text-white/60"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    role === "instructor" ? "text-white" : "text-white/70"
+                  )}
+                >
                   Instructor
                 </span>
               </button>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 relative">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName" className="text-white/80">
+                  Full Name
+                </Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -232,12 +248,18 @@ const Register = () => {
                   value={formData.fullName}
                   onChange={handleInputChange}
                   required
-                  className="h-12"
+                  className="
+                    h-12
+                    bg-white/5 border-white/15 text-white placeholder:text-white/40
+                    focus-visible:ring-emerald-300/40
+                  "
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="text-white/80">
+                  Email Address
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -245,12 +267,18 @@ const Register = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="h-12"
+                  className="
+                    h-12
+                    bg-white/5 border-white/15 text-white placeholder:text-white/40
+                    focus-visible:ring-emerald-300/40
+                  "
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-white/80">
+                  Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -259,24 +287,26 @@ const Register = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="h-12 pr-12"
+                    className="
+                      h-12 pr-12
+                      bg-white/5 border-white/15 text-white placeholder:text-white/40
+                      focus-visible:ring-emerald-300/40
+                    "
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="text-white/80">
+                  Confirm Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -285,27 +315,32 @@ const Register = () => {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
-                    className="h-12 pr-12"
+                    className="
+                      h-12 pr-12
+                      bg-white/5 border-white/15 text-white placeholder:text-white/40
+                      focus-visible:ring-emerald-300/40
+                    "
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
               <Button
                 type="submit"
-                variant="teal"
                 size="lg"
-                className="w-full"
+                className="
+                  w-full h-12
+                  bg-[#F4B942] text-black
+                  hover:bg-[#e6a92f]
+                  active:bg-[#d99f2c]
+                  shadow-[0_16px_40px_rgba(0,0,0,0.25)]
+                "
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Create Account"}
@@ -315,29 +350,34 @@ const Register = () => {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
+                <div className="w-full border-t border-white/10" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
+                <span className="bg-black/20 px-2 text-white/50 backdrop-blur-sm">
                   Already have an account?
                 </span>
               </div>
             </div>
 
             {/* Login Link */}
-            <Button variant="outline" size="lg" className="w-full" asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full h-12 bg-white/5 hover:bg-white/10 border-white/15 text-white"
+              asChild
+            >
               <Link to="/login">Sign In</Link>
             </Button>
           </div>
 
           {/* Footer */}
-          <p className="text-center text-muted-foreground text-sm mt-6">
+          <p className="text-center text-white/55 text-sm mt-6">
             By creating an account, you agree to our{" "}
-            <Link to="#" className="text-primary hover:underline">
+            <Link to="#" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link to="#" className="text-primary hover:underline">
+            <Link to="#" className="text-white/70 hover:text-white underline-offset-4 hover:underline">
               Privacy Policy
             </Link>
           </p>

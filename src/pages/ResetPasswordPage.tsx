@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KeyRound, CheckCircle, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils"; 
+import { cn } from "@/lib/utils";
 
 // --- API Endpoint: Targeting the Flask Backend (app.py) on port 5000 ---
 const AUTH_API_URL = "http://localhost:5000/api/auth";
@@ -15,8 +15,7 @@ const AUTH_API_URL = "http://localhost:5000/api/auth";
 const ResetPassword = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  
-  // Hook to read query parameters (like ?token=...)
+
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
@@ -24,20 +23,18 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isPasswordReset, setIsPasswordReset] = useState(false); // State for success message
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   useEffect(() => {
-    // Basic check to see if a token exists in the URL
     if (!token) {
       toast({
         title: "Error",
         description: "Missing password reset token.",
         variant: "destructive",
       });
-      navigate('/forgot-password');
+      navigate("/forgot-password");
     }
   }, [token, navigate, toast]);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,21 +48,13 @@ const ResetPassword = () => {
       return;
     }
 
-    // NOTE TO USER: The minimum password length check (e.g., newPassword.length < 6)
-    // has been REMOVED as requested.
-
     setIsLoading(true);
 
     try {
       const response = await fetch(`${AUTH_API_URL}/reset-password`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-            token, 
-            newPassword 
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword }),
       });
 
       const data = await response.json();
@@ -73,12 +62,15 @@ const ResetPassword = () => {
       if (response.ok) {
         toast({
           title: "Success",
-          description: data.message || "Your password has been reset successfully.",
+          description:
+            data.message || "Your password has been reset successfully.",
           variant: "default",
         });
         setIsPasswordReset(true);
       } else {
-        const errorMessage = data.message || "Failed to reset password. The link may be invalid or expired.";
+        const errorMessage =
+          data.message ||
+          "Failed to reset password. The link may be invalid or expired.";
         toast({
           title: "Error",
           description: errorMessage,
@@ -98,49 +90,73 @@ const ResetPassword = () => {
   };
 
   if (!token) {
-    // Optionally render a loading state or nothing while redirecting
-    return <div className="p-10 text-center">Checking token...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-16 lg:pt-20 min-h-[calc(100vh-64px)] flex items-center justify-center px-4">
+          <p className="text-white/70">Checking token…</p>
+        </main>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="flex-grow flex items-center justify-center p-4">
-        <div className="w-full max-w-md my-10">
-          
-          {/* HEADER SECTION */}
+
+      <main className="pt-16 lg:pt-20 min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
+        {/* About-page ambience */}
+        <div className="absolute inset-0 -z-10 bg-emerald-950/90" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-black/55 via-emerald-950/70 to-black/55" />
+        <div className="absolute -top-28 left-12 -z-10 w-80 h-80 bg-[#F4B942]/12 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 -z-10 w-72 h-72 bg-teal-400/12 rounded-full blur-3xl" />
+        <div className="absolute inset-0 -z-10 opacity-[0.07] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/30 pointer-events-none" />
+
+        <div className="w-full max-w-md">
+          {/* Header */}
           <div className="text-center mb-8">
-            <KeyRound className="w-10 h-10 text-primary mx-auto mb-2" />
-            <h1 className="text-3xl font-bold font-display text-foreground">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 mb-3 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+              <KeyRound className="w-7 h-7 text-[#F4B942]" />
+            </div>
+            <h1 className="text-3xl font-bold font-display text-white">
               Set New Password
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-white/65 mt-2">
               Use the form below to create your new account password.
             </p>
           </div>
 
-          <div className="bg-card p-8 rounded-2xl shadow-2xl border border-border">
+          <div className="relative rounded-3xl bg-black/20 backdrop-blur-2xl border border-white/10 shadow-[0_28px_90px_rgba(0,0,0,0.55)] p-7 sm:p-8 overflow-hidden">
+            <div className="pointer-events-none absolute -inset-x-24 -inset-y-24 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-30" />
+
             {isPasswordReset ? (
-              // Success State
-              <div className="space-y-6 text-center">
-                <CheckCircle className="w-10 h-10 text-green-500 mx-auto" />
-                <p className="text-lg font-medium text-foreground">
-                    Password Successfully Updated!
+              <div className="space-y-6 text-center relative">
+                <CheckCircle className="w-10 h-10 text-emerald-300 mx-auto" />
+                <p className="text-lg font-medium text-white">
+                  Password Successfully Updated!
                 </p>
-                <p className="text-muted-foreground">
-                    You can now use your new password to sign in.
+                <p className="text-white/65">
+                  You can now use your new password to sign in.
                 </p>
-                <Button variant="teal" size="lg" className="w-full h-12" asChild>
-                    <Link to="/login">Proceed to Sign In</Link>
+                <Button
+                  className="
+                    w-full h-12
+                    bg-[#F4B942] text-black
+                    hover:bg-[#e6a92f] active:bg-[#d99f2c]
+                    shadow-[0_16px_40px_rgba(0,0,0,0.25)]
+                  "
+                  asChild
+                >
+                  <Link to="/login">Proceed to Sign In</Link>
                 </Button>
               </div>
             ) : (
-              // Form State
-              <form onSubmit={handleSubmit} className="space-y-6">
-                
-                {/* New Password Field */}
+              <form onSubmit={handleSubmit} className="space-y-6 relative">
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
+                  <Label htmlFor="newPassword" className="text-white/80">
+                    New Password
+                  </Label>
                   <div className="relative">
                     <Input
                       id="newPassword"
@@ -149,24 +165,33 @@ const ResetPassword = () => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       required
-                      className="h-12 pr-12"
+                      className="
+                        h-12 pr-12
+                        bg-white/5 border-white/15 text-white placeholder:text-white/40
+                        focus-visible:ring-emerald-300/40
+                      "
                       disabled={isLoading}
                     />
                     <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-12 px-3"
-                        onClick={() => setShowPassword(!showPassword)}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-12 px-3 text-white/60 hover:text-white"
+                      onClick={() => setShowPassword(!showPassword)}
                     >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
 
-                {/* Confirm Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Label htmlFor="confirmPassword" className="text-white/80">
+                    Confirm New Password
+                  </Label>
                   <div className="relative">
                     <Input
                       id="confirmPassword"
@@ -175,44 +200,62 @@ const ResetPassword = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      className={cn("h-12 pr-12", {
-                        "border-red-500": newPassword && confirmPassword && newPassword !== confirmPassword,
-                      })}
+                      className={cn(
+                        `
+                        h-12 pr-12
+                        bg-white/5 border-white/15 text-white placeholder:text-white/40
+                        focus-visible:ring-emerald-300/40
+                      `,
+                        {
+                          "border-red-500":
+                            newPassword &&
+                            confirmPassword &&
+                            newPassword !== confirmPassword,
+                        }
+                      )}
                       disabled={isLoading}
                     />
-                    {/* The eye button controls both fields */}
+                    {/* invisible for alignment (keeps your original structure) */}
                     <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-12 px-3 opacity-0 pointer-events-none" 
-                    >
-                        {/* Invisible button, just for structural alignment with the one above */}
-                    </Button>
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-12 px-3 opacity-0 pointer-events-none"
+                    />
                   </div>
-                  {newPassword && confirmPassword && newPassword !== confirmPassword && (
-                    <p className="text-sm text-red-500">Passwords do not match.</p>
-                  )}
+
+                  {newPassword &&
+                    confirmPassword &&
+                    newPassword !== confirmPassword && (
+                      <p className="text-sm text-red-400">
+                        Passwords do not match.
+                      </p>
+                    )}
                 </div>
 
-                {/* Submit Button */}
                 <Button
                   type="submit"
-                  variant="teal"
-                  size="lg"
-                  className="w-full h-12"
-                  disabled={isLoading || newPassword !== confirmPassword || !newPassword}
+                  className="
+                    w-full h-12
+                    bg-[#F4B942] text-black
+                    hover:bg-[#e6a92f] active:bg-[#d99f2c]
+                    shadow-[0_16px_40px_rgba(0,0,0,0.25)]
+                  "
+                  disabled={
+                    isLoading ||
+                    newPassword !== confirmPassword ||
+                    !newPassword
+                  }
                 >
                   {isLoading ? "Updating Password..." : "Update Password"}
                 </Button>
               </form>
             )}
 
-            {/* Back to Login Link */}
             <div className="text-center mt-6">
               <Link
                 to="/login"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center"
+                className="text-sm text-white/55 hover:text-white transition-colors inline-flex items-center"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back to Sign In

@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 import { Star, Clock, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Reveal from "@/components/home/Reveal";
+import TiltCard from "@/components/home/TiltCard";
+import SectionSeparator from "@/components/home/SectionSeparator";
+
 import tourismImage from "@/assets/course-tourism.jpg";
 import cookingImage from "@/assets/course-cooking.jpg";
 import agricultureImage from "@/assets/course-agriculture.jpg";
@@ -55,97 +59,139 @@ const featuredCourses = [
 
 const FeaturedCourses = () => {
   return (
-    <section className="py-20 lg:py-28 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-12">
-          <div>
-            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Featured <span className="text-gradient">Courses</span>
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-xl">
-              Handpicked courses by our expert instructors to help you master local skills
-            </p>
-          </div>
-          <Button variant="outline" asChild className="hidden sm:flex">
-            <Link to="/courses" className="flex items-center gap-2">
-              View All Courses
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Button>
-        </div>
+    <section className="relative py-20 lg:py-28 overflow-hidden bg-emerald-950/90">
+      {/* ✨ About-page style ambience */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-emerald-950/70 to-black/55" />
+      <div className="absolute -top-24 left-10 w-80 h-80 bg-[#F4B942]/12 rounded-full blur-3xl" />
+      <div className="absolute bottom-10 right-8 w-72 h-72 bg-teal-400/12 rounded-full blur-3xl" />
+      <div className="absolute top-1/3 left-1/2 w-72 h-72 bg-emerald-400/8 rounded-full blur-3xl -translate-x-1/2" />
 
-        {/* Courses Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredCourses.map((course, index) => (
-            <Link
-              key={course.id}
-              to={`/courses/${course.id}`}
-              className="group bg-card rounded-2xl overflow-hidden shadow-soft hover:shadow-medium transition-all duration-500 animate-fade-up"
-              style={{ animationDelay: `${index * 100}ms` }}
+      {/* subtle dot texture (like About vibe) */}
+      <div className="absolute inset-0 opacity-[0.07] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
+
+      {/* soft vignette */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/30 pointer-events-none" />
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <Reveal>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-12 lg:mb-16">
+            <div>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+                Featured <span className="text-[#F4B942]">Courses</span>
+              </h2>
+              <p className="text-white/70 text-lg max-w-xl">
+                Handpicked courses by our expert instructors to help you master local skills
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              asChild
+              className="hidden sm:flex bg-white/5 hover:bg-white/10 border-white/15 text-white"
             >
-              {/* Image */}
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <img
-                  src={course.image}
-                  alt={course.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
-                    {course.category}
-                  </span>
-                </div>
-              </div>
+              <Link to="/courses" className="flex items-center gap-2">
+                View All Courses <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          </div>
+        </Reveal>
 
-              {/* Content */}
-              <div className="p-5">
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                  {course.title}
-                </h3>
-                <p className="text-muted-foreground text-sm mb-3">
-                  by {course.instructor}
-                </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {featuredCourses.map((course, i) => (
+            <Reveal key={course.id} delayMs={i * 90}>
+              <TiltCard className="group">
+                <Link
+                  to={`/courses/${course.id}`}
+                  className="
+                    relative block rounded-3xl overflow-hidden
+                    bg-black/20 backdrop-blur-2xl
+                    border border-white/10
+                    shadow-[0_22px_70px_rgba(0,0,0,0.45)]
+                    transition-all duration-500
+                    hover:-translate-y-1 hover:shadow-[0_34px_110px_rgba(0,0,0,0.65)]
+                    hover:ring-1 hover:ring-emerald-300/30
+                  "
+                >
+                  {/* subtle glass sweep */}
+                  <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute -inset-x-24 -inset-y-24 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                  </div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-secondary fill-secondary" />
-                    <span className="font-medium text-foreground">{course.rating}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    <span>{course.students.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{course.duration}</span>
-                  </div>
-                </div>
+                  {/* image */}
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <img
+                      src={course.image}
+                      alt={course.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/18 to-transparent" />
 
-                {/* Price */}
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <span className="font-display text-xl font-bold text-primary">
-                    {course.price}
-                  </span>
-                  <span className="text-sm text-accent font-medium group-hover:text-accent/80 transition-colors">
-                    View Course →
-                  </span>
-                </div>
-              </div>
-            </Link>
+                    {/* category pill */}
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-black/35 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
+                        {course.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* content */}
+                  <div className="p-5 relative">
+                    <h3 className="font-display text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-[#F4B942] transition-colors">
+                      {course.title}
+                    </h3>
+
+                    <p className="text-white/65 text-sm mb-3">
+                      by <span className="text-white/80">{course.instructor}</span>
+                    </p>
+
+                    <div className="flex items-center gap-4 text-sm text-white/65 mb-4">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-[#F4B942] fill-[#F4B942]" />
+                        <span className="font-medium text-white">{course.rating}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-4 h-4" />
+                        <span>{course.students.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{course.duration}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                      <span className="font-display text-xl font-bold text-emerald-300">
+                        {course.price}
+                      </span>
+
+                      <span className="text-sm font-semibold text-[#F4B942]/90 group-hover:text-[#F4B942] transition-colors">
+                        View Course →
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </TiltCard>
+            </Reveal>
           ))}
         </div>
 
-        {/* Mobile View All Button */}
+        {/* mobile button */}
         <div className="mt-8 text-center sm:hidden">
-          <Button variant="outline" asChild className="w-full">
+          <Button
+            variant="outline"
+            asChild
+            className="w-full bg-white/5 hover:bg-white/10 border-white/15 text-white"
+          >
             <Link to="/courses" className="flex items-center justify-center gap-2">
-              View All Courses
-              <ArrowRight className="w-4 h-4" />
+              View All Courses <ArrowRight className="w-4 h-4" />
             </Link>
           </Button>
         </div>
+      </div>
+
+      {/* wave end (keeps your current component) */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <SectionSeparator />
       </div>
     </section>
   );

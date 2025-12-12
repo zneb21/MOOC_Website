@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Check, User, Smile, Heart, Star, Zap, Leaf, Coffee, Music, Palette, BookOpen, Globe, Sun, Moon, Sparkles, X } from "lucide-react";
+import { Check, User, Smile, Heart, Star, Zap, Leaf, Coffee, Music, Palette, BookOpen, Globe, Sun, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AvatarOption {
@@ -36,7 +36,6 @@ const AvatarSelector = ({ selectedAvatar, onSelect }: AvatarSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [tempSelection, setTempSelection] = useState<string | null>(selectedAvatar);
 
-  // Ensure tempSelection is in sync if the parent's selectedAvatar changes
   useEffect(() => {
     setTempSelection(selectedAvatar);
   }, [selectedAvatar]);
@@ -48,67 +47,89 @@ const AvatarSelector = ({ selectedAvatar, onSelect }: AvatarSelectorProps) => {
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    if (isOpen) {
-      setTempSelection(selectedAvatar);
-    }
+    if (isOpen) setTempSelection(selectedAvatar);
   };
 
   const selectedOption = avatarOptions.find((opt) => opt.id === selectedAvatar);
 
   return (
     <div className="flex items-center gap-4">
-      <Avatar className="w-20 h-20 border-2 border-border">
-        {selectedOption ? (
-          <AvatarFallback className={cn(selectedOption.bgClass, "text-primary-foreground")}>
-            <selectedOption.icon className="w-8 h-8" />
-          </AvatarFallback>
-        ) : (
-          <AvatarFallback className="bg-muted text-muted-foreground">
-            <User className="w-8 h-8" />
-          </AvatarFallback>
-        )}
-      </Avatar>
+      {/* Frosted Avatar (hover blur -> clear + glow + micro pop) */}
+      <div className="group relative">
+        <div
+          className="absolute -inset-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ background: "radial-gradient(circle, var(--accent-soft), transparent 60%)" }}
+        />
+        <Avatar
+          className={cn(
+            "w-20 h-20 border overflow-hidden",
+            "border-black/10 dark:border-white/10",
+            "shadow-sm dark:shadow-[0_18px_60px_rgba(0,0,0,0.55)]",
+            "transition-all duration-300",
+            "group-hover:scale-[1.06]"
+          )}
+        >
+          {/* frost overlay */}
+          <div className="absolute inset-0 pointer-events-none bg-white/25 dark:bg-white/5 backdrop-blur-[2px] opacity-100 group-hover:opacity-0 transition-opacity duration-300" />
+
+          {selectedOption ? (
+            <AvatarFallback className={cn(selectedOption.bgClass, "text-white dark:ring-1 dark:ring-white/10")}>
+              <selectedOption.icon className="w-8 h-8 drop-shadow-sm" />
+            </AvatarFallback>
+          ) : (
+            <AvatarFallback className="bg-muted/50 dark:bg-white/5 text-zinc-700 dark:text-zinc-200">
+              <User className="w-8 h-8" />
+            </AvatarFallback>
+          )}
+        </Avatar>
+      </div>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
-          <Button type="button" variant="outline" size="sm">
+          <Button type="button" variant="outline" size="sm" className="border-black/10 dark:border-white/10">
             <Palette className="w-4 h-4 mr-2" />
             Choose Avatar
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+
+        <DialogContent
+          className="sm:max-w-md bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-black/10 dark:border-white/10"
+        >
           <DialogHeader>
-            <DialogTitle className="font-display text-xl">Choose Your Avatar</DialogTitle>
+            <DialogTitle className="font-display text-xl text-zinc-900 dark:text-zinc-50">
+              Choose Your Avatar
+            </DialogTitle>
           </DialogHeader>
-          
+
           <div className="py-4">
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">
               Select an icon to represent you, or choose no avatar.
             </p>
 
-            {/* No Avatar Option */}
+            {/* No Avatar */}
             <button
               type="button"
               onClick={() => setTempSelection(null)}
               className={cn(
-                "w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all mb-4",
+                "w-full flex items-center gap-3 p-3 rounded-lg border transition-all mb-4",
+                "border-black/10 dark:border-white/10",
                 tempSelection === null
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-muted-foreground/30"
+                  ? "bg-[color:var(--accent-soft)]"
+                  : "hover:bg-muted/40 dark:hover:bg-white/5"
               )}
             >
               <Avatar className="w-12 h-12">
-                <AvatarFallback className="bg-muted text-muted-foreground">
+                <AvatarFallback className="bg-muted/50 dark:bg-white/5 text-zinc-700 dark:text-zinc-200">
                   <X className="w-5 h-5" />
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium text-foreground">No Avatar</span>
-              {tempSelection === null && (
-                <Check className="w-5 h-5 text-primary ml-auto" />
-              )}
+
+              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">No Avatar</span>
+
+              {tempSelection === null && <Check className="w-5 h-5 ml-auto" style={{ color: "var(--accent)" }} />}
             </button>
 
-            {/* Avatar Grid */}
+            {/* Grid */}
             <div className="grid grid-cols-4 gap-3">
               {avatarOptions.map((option) => (
                 <button
@@ -116,21 +137,25 @@ const AvatarSelector = ({ selectedAvatar, onSelect }: AvatarSelectorProps) => {
                   type="button"
                   onClick={() => setTempSelection(option.id)}
                   className={cn(
-                    "relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
-                    tempSelection === option.id
-                      ? "border-primary bg-primary/5 scale-105"
-                      : "border-transparent hover:border-muted-foreground/30 hover:bg-muted/50"
+                    "relative flex flex-col items-center gap-2 p-3 rounded-xl border transition-all",
+                    "border-black/10 dark:border-white/10",
+                    "hover:scale-[1.04] active:scale-[0.98]",
+                    tempSelection === option.id ? "bg-[color:var(--accent-soft)]" : "hover:bg-muted/40 dark:hover:bg-white/5"
                   )}
                 >
                   <Avatar className="w-12 h-12">
-                    <AvatarFallback className={cn(option.bgClass, "text-primary-foreground")}>
+                    <AvatarFallback className={cn(option.bgClass, "text-white dark:ring-1 dark:ring-white/10")}>
                       <option.icon className="w-5 h-5" />
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs text-muted-foreground">{option.label}</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-300">{option.label}</span>
+
                   {tempSelection === option.id && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                      <Check className="w-3 h-3 text-primary-foreground" />
+                    <div
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                      style={{ background: "var(--accent)" }}
+                    >
+                      <Check className="w-3 h-3 text-white" />
                     </div>
                   )}
                 </button>
@@ -139,7 +164,7 @@ const AvatarSelector = ({ selectedAvatar, onSelect }: AvatarSelectorProps) => {
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={() => setOpen(false)} className="border-black/10 dark:border-white/10">
               Cancel
             </Button>
             <Button variant="teal" onClick={handleConfirm}>
