@@ -10,6 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Textarea } from "@/components/ui/textarea"; 
 import { Star, Clock, Users, PlayCircle, CheckCircle, Award, BookOpen, FileText, HelpCircle, Edit, Trash2, Settings } from "lucide-react";
 import ThemeToggle from "@/components/profile/ThemeToggle";
+import LiquidEther from "@/components/ui/liquidether";
 import tourismImage from "@/assets/course-tourism.jpg";
 import cookingImage from "@/assets/course-cooking.jpg";
 import agricultureImage from "@/assets/course-agriculture.jpg";
@@ -92,10 +93,42 @@ type StaticCourseMeta = {
 // ============================================
 const Profile = () => {
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="relative min-h-screen bg-muted">
+      {/* Background Layer */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100vh",
+          zIndex: 0,
+        }}
+        className="liquid-ether-container"
+      >
+        <LiquidEther
+          colors={["#4C8C4A", "#98D198", "#70A370"]}
+          mouseForce={30}
+          cursorSize={100}
+          isViscous={false}
+          viscous={30}
+          iterationsViscous={32}
+          iterationsPoisson={32}
+          resolution={0.3}
+          isBounce={false}
+          autoDemo={true}
+          autoSpeed={0.5}
+          autoIntensity={2.2}
+          takeoverDuration={0.25}
+          autoResumeDelay={3000}
+          autoRampDuration={0.6}
+        />
+      </div>
+
+      {/* Foreground */}
       <Navbar />
-      
-      <main className="pt-20 lg:pt-24 pb-16">
+
+      <main className="pt-20 lg:pt-24 pb-16 relative z-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto space-y-6">
             {/* Header */}
@@ -103,17 +136,17 @@ const Profile = () => {
               <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
                 <Settings className="w-6 h-6 text-primary-foreground" />
               </div>
+
               <div>
-                <h1 className="font-display text-2xl font-bold text-foreground">
+                <h1 className="font-display text-2xl font-bold text-foreground drop-shadow-md">
                   Account Settings
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground drop-shadow-sm">
                   Manage your profile and preferences
                 </p>
               </div>
             </div>
 
-            
             <ProfileForm />
             <ThemeToggle />
             <SecuritySettings />
