@@ -9,6 +9,7 @@ import tourismImage from "@/assets/course-tourism.jpg";
 import cookingImage from "@/assets/course-cooking.jpg";
 import agricultureImage from "@/assets/course-agriculture.jpg";
 import craftsImage from "@/assets/course-crafts.jpg";
+import LiquidEther from "@/components/ui/liquidether";
 
 // === Types for data from your PHP/MySQL API ===
 interface CourseFromApi {
@@ -113,7 +114,37 @@ const Courses = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-muted">
+       {/* Background Layer */}
+       <div
+         style={{
+           position: "fixed",
+           top: 0,
+           left: 0,
+           width: "100%",
+           height: "100vh",
+           zIndex: 0,
+         }}
+         className="liquid-ether-container"
+       >
+         <LiquidEther
+           colors={["#4C8C4A", "#98D198", "#70A370"]}
+           mouseForce={30}
+           cursorSize={100}
+           isViscous={false}
+           viscous={30}
+           iterationsViscous={32}
+           iterationsPoisson={32}
+           resolution={0.3}
+           isBounce={false}
+           autoDemo={true}
+           autoSpeed={0.5}
+           autoIntensity={2.2}
+           takeoverDuration={0.25}
+           autoResumeDelay={3000}
+           autoRampDuration={0.6}
+         />
+       </div>
       <Navbar />
 
       <main className="pt-16 lg:pt-20">

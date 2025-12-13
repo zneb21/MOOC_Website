@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
+//LiquidEther Background
+import LiquidEther from "@/components/ui/liquidether";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -240,10 +242,40 @@ const About = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+     <div className="relative min-h-screen bg-muted">
+       {/* Background Layer */}
+       <div
+         style={{
+           position: "fixed",
+           top: 0,
+           left: 0,
+           width: "100%",
+           height: "100vh",
+           zIndex: 0,
+         }}
+         className="liquid-ether-container"
+       >
+         <LiquidEther
+           colors={["#4C8C4A", "#98D198", "#70A370"]}
+           mouseForce={30}
+           cursorSize={100}
+           isViscous={false}
+           viscous={30}
+           iterationsViscous={32}
+           iterationsPoisson={32}
+           resolution={0.3}
+           isBounce={false}
+           autoDemo={true}
+           autoSpeed={0.5}
+           autoIntensity={2.2}
+           takeoverDuration={0.25}
+           autoResumeDelay={3000}
+           autoRampDuration={0.6}
+         />
+       </div>
       <Navbar />
 
-      <main className="pt-16 lg:pt-20">
+      <main className="pt-16 lg:pt-20 relative z-10">
         {/* HERO */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-emerald-950 via-emerald-900/80 to-background" />
