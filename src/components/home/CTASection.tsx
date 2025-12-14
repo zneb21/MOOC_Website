@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, ArrowRight } from "lucide-react";
+import { GraduationCap, ArrowRight, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import Reveal from "@/components/home/Reveal";
 
 const CTASection = () => {
@@ -19,13 +20,7 @@ const CTASection = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <Reveal>
-          <div
-            className="max-w-3xl mx-auto text-center rounded-3xl p-8 sm:p-10
-                       bg-white/12 dark:bg-white/9 backdrop-blur-2xl border border-white/15
-                       shadow-[0_28px_90px_rgba(0,0,0,0.35)]
-                       hover:shadow-[0_40px_120px_rgba(0,0,0,0.48)]
-                       transition-all duration-500"
-          >
+          <div className="max-w-3xl mx-auto text-center rounded-3xl p-8 sm:p-10 bg-white/12 dark:bg-white/9 backdrop-blur-2xl border border-white/15 shadow-[0_28px_90px_rgba(0,0,0,0.35)] transition-all duration-500">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 border border-white/15 mb-6 shadow-[0_16px_40px_rgba(0,0,0,0.25)]">
               <GraduationCap className="w-8 h-8 text-[#F4B942]" />
             </div>
@@ -34,35 +29,49 @@ const CTASection = () => {
               Ready to Start Your <span className="text-[#F4B942]">Learning Journey?</span>
             </h2>
 
-            <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-              Join thousands of Filipino learners discovering the beauty of local culture, traditional
-              skills, and heritage. Your path to becoming an expert starts here.
+            <p className="text-white/80 text-lg mb-10 max-w-2xl mx-auto">
+              Join thousands of Filipino learners discovering local culture, traditional skills,
+              and heritage. Your path to becoming an expert starts here.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button
-                variant="gold"
-                size="xl"
-                asChild
-                className="shadow-[0_18px_45px_rgba(0,0,0,0.25)] hover:shadow-[0_28px_80px_rgba(0,0,0,0.38)] transition-shadow"
-              >
-                <Link to="/register" className="flex items-center gap-2">
-                  Get Started Free
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-              </Button>
+            {/* CTA BUTTONS */}
+            <div className="flex flex-wrap justify-center gap-6">
+              {/* Primary CTA */}
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  variant="gold"
+                  size="xl"
+                  asChild
+                  className="relative overflow-hidden group shadow-[0_18px_45px_rgba(0,0,0,0.3)]"
+                >
+                  <Link to="/register" className="flex items-center gap-3">
+                    {/* shimmer */}
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-700" />
 
-              <Button
-                variant="hero-outline"
-                size="xl"
-                asChild
-                className="bg-white/5 hover:bg-white/10 border-white/20"
-              >
-                <Link to="/courses">Explore Courses</Link>
-              </Button>
+                    <Sparkles className="w-5 h-5 text-white" />
+                    <span className="relative z-10">Get Started Free</span>
+                    <ArrowRight className="relative z-10 w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+              </motion.div>
+
+              {/* Secondary CTA */}
+              <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  variant="hero-outline"
+                  size="xl"
+                  asChild
+                  className="relative border-white/25 bg-white/5 hover:bg-white/10 backdrop-blur-xl"
+                >
+                  <Link to="/courses" className="relative group">
+                    <span className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-[#F4B942]/40 to-teal-400/40 opacity-0 blur group-hover:opacity-100 transition" />
+                    <span className="relative">Explore Courses</span>
+                  </Link>
+                </Button>
+              </motion.div>
             </div>
 
-            <p className="text-white/60 text-sm mt-8">
+            <p className="text-white/60 text-sm mt-10">
               No credit card required • Free starter courses available
             </p>
           </div>
