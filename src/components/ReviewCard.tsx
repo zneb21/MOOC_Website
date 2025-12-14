@@ -32,31 +32,31 @@ const ReviewCard = ({
   isDeleting = false,
 }: ReviewCardProps) => {
   return (
-    <div className="bg-card rounded-xl p-5 shadow-soft relative group">
+    <div className="bg-white/5 backdrop-blur-sm border border-white/5 rounded-2xl p-5 relative group hover:bg-white/8 hover:border-white/10 transition-all duration-300">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3 flex-1">
-          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-            <span className="text-primary-foreground font-semibold">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F4B942] to-orange-400 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20">
+            <span className="text-zinc-950 font-bold text-sm">
               {name.charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 justify-between">
-              <p className="font-semibold text-foreground">{name}</p>
+              <p className="font-semibold text-white">{name}</p>
               {isOwnReview && (
-                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                  Your Review
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">
+                  You
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 mt-0.5">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`w-4 h-4 ${
+                  className={`w-3.5 h-3.5 ${
                     i < rating
-                      ? "text-secondary fill-secondary"
-                      : "text-muted-foreground"
+                      ? "text-[#F4B942] fill-[#F4B942]"
+                      : "text-zinc-700 fill-zinc-800/50"
                   }`}
                 />
               ))}
@@ -64,7 +64,7 @@ const ReviewCard = ({
           </div>
         </div>
 
-        {/* Action Buttons - Show on hover or always for own reviews */}
+        {/* Action Buttons */}
         {isOwnReview && (onEdit || onDelete) && (
           <div className="flex gap-2 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
             {onEdit && (
@@ -72,10 +72,10 @@ const ReviewCard = ({
                 size="sm"
                 variant="ghost"
                 onClick={onEdit}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 text-zinc-400 hover:text-white hover:bg-white/10"
                 title="Edit review"
               >
-                <Edit2 className="w-4 h-4" />
+                <Edit2 className="w-3.5 h-3.5" />
               </Button>
             )}
             {onDelete && (
@@ -84,29 +84,28 @@ const ReviewCard = ({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    className="h-8 w-8 p-0 text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
                     title="Delete review"
                     disabled={isDeleting}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-zinc-900 border-white/10 text-white">
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5 text-destructive" />
+                    <AlertDialogTitle className="flex items-center gap-2 text-white">
+                      <AlertCircle className="w-5 h-5 text-red-500" />
                       Delete Review
                     </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete your review? This action
-                      cannot be undone.
+                    <AlertDialogDescription className="text-zinc-400">
+                      Are you sure you want to delete your review? This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <div className="flex gap-2 justify-end">
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white">Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={onDelete}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      className="bg-red-500 text-white hover:bg-red-600"
                       disabled={isDeleting}
                     >
                       {isDeleting ? "Deleting..." : "Delete"}
@@ -118,7 +117,7 @@ const ReviewCard = ({
           </div>
         )}
       </div>
-      <p className="text-muted-foreground">{comment}</p>
+      <p className="text-zinc-300 text-sm leading-relaxed">{comment}</p>
     </div>
   );
 };

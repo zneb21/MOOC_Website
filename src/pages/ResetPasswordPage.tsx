@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils";
 const AUTH_API_URL = "http://localhost:5000/api/auth";
 // -----------------------------------------------------------------------
 
+// NEW CONSTANT for minimum password length
+const MIN_PASSWORD_LENGTH = 6;
+
 const ResetPassword = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -47,6 +50,17 @@ const ResetPassword = () => {
       });
       return;
     }
+    
+    // NEW: Password Length Validation (Client-side)
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+        toast({
+            title: "Validation Error",
+            description: `New password must be at least ${MIN_PASSWORD_LENGTH} characters long.`,
+            variant: "destructive",
+        });
+        return;
+    }
+
 
     setIsLoading(true);
 
@@ -154,8 +168,9 @@ const ResetPassword = () => {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6 relative">
                 <div className="space-y-2">
+                  {/* UPDATED LABEL */}
                   <Label htmlFor="newPassword" className="text-white/80">
-                    New Password
+                    New Password (Min. {MIN_PASSWORD_LENGTH} Chars)
                   </Label>
                   <div className="relative">
                     <Input
@@ -165,6 +180,7 @@ const ResetPassword = () => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       required
+                      minLength={MIN_PASSWORD_LENGTH}
                       className="
                         h-12 pr-12
                         bg-white/5 border-white/15 text-white placeholder:text-white/40
@@ -238,13 +254,14 @@ const ResetPassword = () => {
                   className="
                     w-full h-12
                     bg-[#F4B942] text-black
-                    hover:bg-[#e6a92f] active:bg-[#d99f2c]
+                    hover:bg-[#e6a92f] active:bg-[#d9f2c]
                     shadow-[0_16px_40px_rgba(0,0,0,0.25)]
                   "
                   disabled={
                     isLoading ||
                     newPassword !== confirmPassword ||
-                    !newPassword
+                    !newPassword ||
+                    newPassword.length < MIN_PASSWORD_LENGTH // ADDED MIN LENGTH CHECK
                   }
                 >
                   {isLoading ? "Updating Password..." : "Update Password"}

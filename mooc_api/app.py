@@ -52,15 +52,18 @@ _raw_password = os.environ.get("MAIL_PASSWORD", "")
 SENDER_PASSWORD = _raw_password.replace(" ", "") 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:8080")
 
+# NEW CONSTANT
+MIN_PASSWORD_LENGTH = 6
+
 
 # --------------------------
 # DB helper functions
 # --------------------------
-def get_db():
+def get_db(): #
     """Establishes a connection to the MySQL database."""
     return mysql.connector.connect(**DB_CONFIG)
 
-def save_message(user_id, role, message):
+def save_message(user_id, role, message): #
     """Saves a chat message."""
     db = get_db()
     cursor = db.cursor()
@@ -76,7 +79,7 @@ def save_message(user_id, role, message):
         cursor.close()
         db.close()
 
-def load_chat_summary(user_id):
+def load_chat_summary(user_id): #
     """Retrieves history for the specific user_id to provide context to the AI."""
     db = get_db()
     cursor = db.cursor()
@@ -99,7 +102,7 @@ def load_chat_summary(user_id):
     return "\n".join(summary)
 
 
-def get_chat_history(user_id):
+def get_chat_history(user_id): #
     """
     Retrieves the full chat history for a user, structured for API response.
     """
@@ -124,13 +127,13 @@ def get_chat_history(user_id):
 # --------------------------
 # Gemini handler functions (PRESERVED)
 # --------------------------
-def parse_gemini_response(resp):
+def parse_gemini_response(resp): #
     """Safely extract the best output text from different possible Gemini SDK/REST formats."""
     if hasattr(resp, "text") and resp.text: return resp.text
     return str(resp)
 
 
-def call_gemini_sdk(prompt):
+def call_gemini_sdk(prompt): #
     """Tries the Gemini SDK, falls back to REST call on failure."""
     if genai is None:
         return "SDK not installed. Falling back to REST call..." + call_gemini_rest(prompt)
@@ -144,7 +147,7 @@ def call_gemini_sdk(prompt):
         return call_gemini_rest(prompt)
 
 
-def call_gemini_rest(prompt):
+def call_gemini_rest(prompt): #
     """Calls Gemini API using REST for maximum compatibility and debugging."""
     url = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateText"
     body = {"prompt": {"text": prompt}, "temperature": 0.4, "maxOutputTokens": 800}
@@ -182,7 +185,7 @@ def call_gemini_rest(prompt):
 # --------------------------
 # Email handler functions (FIXED FOR RELIABILITY)
 # --------------------------
-def _create_reset_password_html_body(reset_link):
+def _create_reset_password_html_body(reset_link): #
     # (HTML template generation is retained)
     START_COLOR = "#1D4ED8"  
     END_COLOR = "#0D9488"    
@@ -249,7 +252,7 @@ def _create_reset_password_html_body(reset_link):
     return html
 
 
-def send_reset_email(user_email):
+def send_reset_email(user_email): #
     # Generates the unique token
     reset_token = str(uuid.uuid4())
     reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
@@ -266,7 +269,7 @@ def send_reset_email(user_email):
         return False, msg
 
 
-def _send_email(to_email, subject, plain_text_body, html_body):
+def _send_email(to_email, subject, plain_text_body, html_body): #
     
     if SENDER_PASSWORD == "ohzmfislveuugwto": 
         print("WARNING: Using default/hardcoded password. Ensure this is intentional.")
@@ -306,13 +309,13 @@ def _send_email(to_email, subject, plain_text_body, html_body):
 # Routes
 # --------------------------
 @app.route("/")
-def index():
+def index(): #
     return render_template("lesson.html")
 
 # --- Chat Routes ---
 
 @app.route("/api/chat/history/<int:user_id>", methods=["GET"])
-def chat_history_route(user_id):
+def chat_history_route(user_id): #
     try:
         history = get_chat_history(user_id)
         return jsonify(history), 200
@@ -322,7 +325,7 @@ def chat_history_route(user_id):
 
 
 @app.route("/chat", methods=["POST"])
-def chat():
+def chat(): #
     # Exact AI logic from your previous snippet (Preserved)
     data = request.json
     user_id = data.get("user_id") or data.get("userId") # Handle both keys
@@ -376,7 +379,7 @@ Preferred language: {language}
 # --- Authentication and User Management Routes ---
 
 @app.route("/api/auth/forgot-password", methods=["POST"])
-def forgot_password():
+def forgot_password(): #
     """
     Initiates the password reset process: checks user, sends email, and saves token.
     """
@@ -431,10 +434,9 @@ def forgot_password():
 
 
 @app.route("/api/auth/reset-password", methods=["POST"])
-def reset_password():
+def reset_password(): #
     """
     Handles the final step of the password reset: verifies token, updates password, deletes token.
-    The minimum password length check (>= 6) has been REMOVED as requested.
     """
     data = request.json
     token = data.get("token")
@@ -443,6 +445,10 @@ def reset_password():
     if not all([token, new_password]):
         return jsonify({"message": "Token and new password are required."}), 400
     
+    # NEW: Server-side password length validation
+    if len(new_password) < MIN_PASSWORD_LENGTH:
+        return jsonify({"message": f"Password must be at least {MIN_PASSWORD_LENGTH} characters long."}), 400
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
     
@@ -493,7 +499,7 @@ def reset_password():
 
 @app.route("/api/auth/delete", methods=["DELETE"])
 # Note: Ensure you have 'from flask import request, jsonify' and 'import bcrypt'
-def delete_account():
+def delete_account(): #
     # FIX 1: Use get_json() for safer JSON parsing
     data = request.get_json() 
     

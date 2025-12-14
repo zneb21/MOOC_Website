@@ -18,6 +18,9 @@ const isValidEmail = (email: string) => {
   return /\S+@\S+\.\S+/.test(email);
 };
 
+// NEW CONSTANT: Minimum password length
+const MIN_PASSWORD_LENGTH = 6;
+
 const Register = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -69,6 +72,16 @@ const Register = () => {
       });
       return;
     }
+    
+    // Password Length Validation (Client-side)
+    if (formData.password.length < MIN_PASSWORD_LENGTH) {
+        toast({
+            title: "Validation Error",
+            description: `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`,
+            variant: "destructive",
+        });
+        return;
+    }
 
     setIsLoading(true);
 
@@ -88,19 +101,19 @@ const Register = () => {
       });
 
       // 3. Handle API Response
-      // ✅ Treat ANY 2xx as success (PHP usually returns 200 OK)
-      if (response.ok) {
+      
+      // ✅ SUCCESS (201 Created)
+      if (response.status === 201 || response.ok) {
         toast({
           title: "Registration Successful! 🎉",
-          description: "Your account has been created. You can now sign in.",
+          description: "Your account has been created. Please sign in now.",
         });
-        navigate("/dashboard");
+        navigate("/login"); 
       }
 
-      // ❌ Duplicate email (409 Conflict)
+      // ❌ DUPLICATE EMAIL (409 Conflict)
       else if (response.status === 409) {
-        const FRIENDLY_MESSAGE =
-          "This email is already in use. Please sign in or use a different email.";
+        const FRIENDLY_MESSAGE = "This email is already in use. Please sign in.";
         let errorMessage = FRIENDLY_MESSAGE;
 
         try {
@@ -111,13 +124,13 @@ const Register = () => {
         } catch (e) {}
 
         toast({
-          title: "Email Already Registered",
+          title: "Registration Failed",
           description: errorMessage,
-          variant: "destructive",
+          variant: "destructive", // Shows red error toast
         });
       }
 
-      // ❌ All other errors (400, 500, etc.)
+      // ❌ OTHER ERRORS (400, 500, etc.)
       else {
         let errorMessage = "An unexpected error occurred during registration.";
         let errorTitle = "Registration Failed";
@@ -156,7 +169,7 @@ const Register = () => {
       <Navbar />
 
       <main className="pt-16 lg:pt-20 min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
-        {/* About-page ambience */}
+        {/* Background Effects */}
         <div className="absolute inset-0 -z-10 bg-emerald-950/90" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-black/55 via-emerald-950/70 to-black/55" />
         <div className="absolute -top-28 left-12 -z-10 w-80 h-80 bg-[#F4B942]/12 rounded-full blur-3xl" />
@@ -248,11 +261,7 @@ const Register = () => {
                   value={formData.fullName}
                   onChange={handleInputChange}
                   required
-                  className="
-                    h-12
-                    bg-white/5 border-white/15 text-white placeholder:text-white/40
-                    focus-visible:ring-emerald-300/40
-                  "
+                  className="h-12 bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-emerald-300/40"
                 />
               </div>
 
@@ -267,17 +276,13 @@ const Register = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="
-                    h-12
-                    bg-white/5 border-white/15 text-white placeholder:text-white/40
-                    focus-visible:ring-emerald-300/40
-                  "
+                  className="h-12 bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-emerald-300/40"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-white/80">
-                  Password
+                  Password (Min. {MIN_PASSWORD_LENGTH} Chars)
                 </Label>
                 <div className="relative">
                   <Input
@@ -287,11 +292,8 @@ const Register = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="
-                      h-12 pr-12
-                      bg-white/5 border-white/15 text-white placeholder:text-white/40
-                      focus-visible:ring-emerald-300/40
-                    "
+                    minLength={MIN_PASSWORD_LENGTH}
+                    className="h-12 pr-12 bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-emerald-300/40"
                   />
                   <button
                     type="button"
@@ -315,11 +317,7 @@ const Register = () => {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
-                    className="
-                      h-12 pr-12
-                      bg-white/5 border-white/15 text-white placeholder:text-white/40
-                      focus-visible:ring-emerald-300/40
-                    "
+                    className="h-12 pr-12 bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-emerald-300/40"
                   />
                   <button
                     type="button"
@@ -334,13 +332,7 @@ const Register = () => {
               <Button
                 type="submit"
                 size="lg"
-                className="
-                  w-full h-12
-                  bg-[#F4B942] text-black
-                  hover:bg-[#e6a92f]
-                  active:bg-[#d99f2c]
-                  shadow-[0_16px_40px_rgba(0,0,0,0.25)]
-                "
+                className="w-full h-12 bg-[#F4B942] text-black hover:bg-[#e6a92f] active:bg-[#d99f2c] shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Create Account"}

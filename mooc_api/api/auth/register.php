@@ -1,11 +1,10 @@
 <?php
-// 1. Debugging: Enable error reporting to see issues in the browser/network tab
+// 1. Debugging: Enable error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // 2. Include Database Config
-// NOTE: This assumes your file is in 'htdocs/mooc_api/api/auth/'
-// and config.php is in 'htdocs/mooc_api/'
+// Adjust path if your folder structure differs
 if (file_exists('../../config.php')) {
     require_once('../../config.php');
 } else {
@@ -15,7 +14,6 @@ if (file_exists('../../config.php')) {
 }
 
 // 3. Handle CORS Preflight (OPTIONS)
-// This handles the browser's "safety check" before sending data
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -43,7 +41,7 @@ if (
     exit();
 }
 
-// Assign variables
+// Assign variables and sanitize
 $name = htmlspecialchars(strip_tags($data['name']));
 $email = htmlspecialchars(strip_tags($data['email']));
 $role = htmlspecialchars(strip_tags($data['role']));
@@ -56,18 +54,41 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit();
 }
 
-// 8. Security: Hash the password
-$hashed_password = password_hash($password, PASSWORD_DEFAULT);
+// 8. Validation: Password Length
+$MIN_PASSWORD_LENGTH = 6;
+if (strlen($password) < $MIN_PASSWORD_LENGTH) {
+    http_response_code(400);
+    echo json_encode(["message" => "Password must be at least {$MIN_PASSWORD_LENGTH} characters long."]);
+    exit();
+}
 
-// 9. Database Insertion
-// Check if the connection variable from config.php is valid
+// Check database connection
 if (!isset($conn)) {
     http_response_code(500);
     echo json_encode(["message" => "Database connection error."]);
     exit();
 }
 
-// Prepare SQL statement
+// 9. CHECK IF EMAIL ALREADY EXISTS
+// This prevents duplicates and returns the correct 409 error
+$check_query = "SELECT id FROM users WHERE email = ?";
+$check_stmt = $conn->prepare($check_query);
+$check_stmt->bind_param("s", $email);
+$check_stmt->execute();
+$check_stmt->store_result();
+
+if ($check_stmt->num_rows > 0) {
+    http_response_code(409); // 409 Conflict
+    echo json_encode(["message" => "This email address is already registered."]);
+    $check_stmt->close();
+    exit();
+}
+$check_stmt->close();
+
+// 10. Security: Hash the password
+$hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+// 11. Database Insertion
 $query = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
 $stmt = $conn->prepare($query);
 
@@ -83,9 +104,9 @@ if ($stmt) {
             "userId" => $conn->insert_id
         ]);
     } else {
-        // Handle Errors (e.g., Duplicate Email)
+        // Fallback check for MySQL duplicate error (1062) just in case
         if ($conn->errno === 1062) {
-            http_response_code(409); // 409 Conflict
+            http_response_code(409); 
             echo json_encode(["message" => "This email address is already registered."]);
         } else {
             http_response_code(500);

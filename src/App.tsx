@@ -16,8 +16,11 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import LessonView from "./pages/LessonView";
-import ResetPasswordPage from './pages/ResetPasswordPage'; // Already imported
-import ForgotPassword from './pages/ForgotPassword'; // <-- NEW IMPORT
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import ForgotPassword from './pages/ForgotPassword';
+
+// 1. IMPORT ClickSpark component
+import ClickSpark from '@/components/ClickSpark';
 
 const queryClient = new QueryClient();
 
@@ -27,48 +30,56 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/courses/:id" element={<CoursePreview />} />
+      {/* 2. WRAP the entire application (BrowserRouter) with ClickSpark */}
+      <ClickSpark
+          sparkColor='#F5C542' // Warm Gold/Amber color to match the site's accent
+          sparkSize={40}       // Slightly larger for a noticeable effect
+          sparkRadius={120}    // Wide radius for a soft, spreading glow
+          sparkCount={7}       // 7 sparks for an intentional, sophisticated feel
+          duration={900}       // Longer duration (ms) for a slower fade out
+      >
+        <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/:id" element={<CoursePreview />} />
 
-          {/* Lesson viewer route */}
-          <Route path="/course/:id/lesson/:lessonSlug" element={<LessonView />} />
+            {/* Lesson viewer route */}
+            <Route path="/course/:id/lesson/:lessonSlug" element={<LessonView />} />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          {/* ✅ NEW: Password Reset Route - Public access */}
-          {/* This path handles the link sent in the email: /reset-password?token=... */}
-          <Route path="/forgot-password" element={<ForgotPassword />} /> {/* <-- NEW ROUTE */}
-          <Route path="/reset-password" element={<ResetPasswordPage />} /> 
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* Password Reset Routes - Public access */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} /> 
 
-          {/* For User Dashboard chuchu */}
-          <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+            {/* For User Dashboard chuchu */}
             <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* MUST stay last */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AuthProvider>
-      </BrowserRouter>
+            {/* MUST stay last */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+        </BrowserRouter>
+      </ClickSpark>
     </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>

@@ -1,40 +1,49 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+
+// UI Components
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import LiquidEther from "@/components/ui/liquidether";
+
+// Icons
 import {
   Menu,
-  X,
-  PlayCircle,
   ChevronLeft,
   ChevronRight,
   CheckCircle,
-  MessageSquare,
-  Home,
+  Sparkles,
+  Lock,
+  Play,
+  FileText,
+  ArrowLeft,
+  Send,
+  Clock,
+  User as UserIcon // Added UserIcon for fallback
 } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
-import axios from "axios"; // for Flask + PHP API
 
+import { cn } from "@/lib/utils";
 
-// ✅ same API as CoursePreview
+/* -------------------------------------------------------------------------- */
+/* TYPES                                   */
+/* -------------------------------------------------------------------------- */
+
 const API_URL = "http://localhost/mooc_api/get_courses.php";
-const UPDATE_PROGRESS_API =
-  "http://localhost/mooc_api/update_course_progress.php"; 
+const UPDATE_PROGRESS_API = "http://localhost/mooc_api/update_course_progress.php";
 
-
-// 🔹 shapes from PHP (only what we need in LessonView)
 type LessonFromApi = {
   lesson_id: number;
   content_id: number;
   lesson_title: string;
   lesson_duration: string | null;
   lesson_type: "video" | "reading" | "quiz" | null;
-  lesson_directory_url?: string | null; // ⬅️ from get_courses.php
+  lesson_directory_url?: string | null;
 };
 
 type CourseContentFromApi = {
@@ -53,12 +62,11 @@ type CourseFromApi = {
   course_contents?: CourseContentFromApi[];
 };
 
-// 🔹 internal UI types
 type Lesson = {
   title: string;
   duration: string;
   type: "video" | "reading" | "quiz";
-  videoUrl?: string | null; // ⬅️ mapped from lesson_directory_url
+  videoUrl?: string | null;
 };
 
 type Module = {
@@ -72,103 +80,105 @@ type CourseData = {
   modules: Module[];
 };
 
-export default function UdemyLayout() {
-  const NAV_HEIGHT = 64;
+/* -------------------------------------------------------------------------- */
+/* COMPONENT                                 */
+/* -------------------------------------------------------------------------- */
 
-  // ---------------------------------------------------------
-  // ✅ FIX: Robust User ID Retrieval ALIGNED with AuthContext
-  // ---------------------------------------------------------
-  /**
-   * Safely retrieves the user's database ID from localStorage, checking multiple
-   * potential keys used by the login/auth flow.
-   */
-  const getCurrentUserId = (): number | null => {
+export default function LessonView() {
+  const navigate = useNavigate();
+  const { id, lessonSlug } = useParams<{ id: string; lessonSlug: string }>();
+
+  // ------------------------------------------
+  // 1. User Logic & Avatar Retrieval
+  // ------------------------------------------
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 1. Get ID
+    let userId = 23; // Fallback default
     try {
-      // 1. Primary Check: "silaylearn_user" object (used by your AuthProvider)
       const userRaw = localStorage.getItem("silaylearn_user");
       if (userRaw) {
         const parsed = JSON.parse(userRaw);
-        // Look for dbId (the actual database ID from PHP login.php)
-        if (parsed && parsed.dbId) return Number(parsed.dbId);
+        if (parsed.dbId) userId = Number(parsed.dbId);
+        // Try to get avatar from new object structure
+        if (parsed.profile_picture) setUserAvatar(parsed.profile_picture);
+        else if (parsed.avatar) setUserAvatar(parsed.avatar);
+      } else {
+        // Fallback to old structure
+        const oldUserRaw = localStorage.getItem("user");
+        if (oldUserRaw) {
+          const parsed = JSON.parse(oldUserRaw);
+          if (parsed.id) userId = Number(parsed.id);
+          // Try to get avatar from old object structure
+          if (parsed.profile_picture) setUserAvatar(parsed.profile_picture);
+        }
       }
-
-      // FALLBACK 1: Check for old "user" object 
-      const oldUserRaw = localStorage.getItem("user");
-      if (oldUserRaw) {
-        const parsed = JSON.parse(oldUserRaw);
-        if (parsed && parsed.id) return Number(parsed.id);
-      }
-
-      // FALLBACK 2: Check for direct "user_id" string
-      const userIdRaw = localStorage.getItem("user_id");
-      if (userIdRaw) return Number(userIdRaw);
-
+      const simpleId = localStorage.getItem("user_id");
+      if (simpleId && !userRaw && !localStorage.getItem("user")) userId = Number(simpleId);
     } catch (e) {
-      console.error("Error parsing user ID from localStorage:", e);
+      console.error("Error parsing user data:", e);
     }
-    
-    // Original fallback logic (23) to minimize change if no keys are present
-    console.warn("No valid user ID found in storage. Falling back to ID 23.");
-    return 23; 
-  };
-  
-  // Get the current user ID to use for state and the component key
-  const currentUserId = getCurrentUserId();
-  // ---------------------------------------------------------
-  // END FIX: Robust User ID Retrieval
-  // ---------------------------------------------------------
+    setCurrentUserId(userId);
+  }, []);
 
-
-  // 🔹 route params: /course/:id/lesson/:lessonSlug
-  const { id, lessonSlug } = useParams<{ id: string; lessonSlug: string }>();
-  const navigate = useNavigate();
-
-  // 🔹 course data coming from PHP
+  // ------------------------------------------
+  // 2. State
+  // ------------------------------------------
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarTab, setSidebarTab] = useState("content");
-  const [activeModule, setActiveModule] = useState<number | null>(null);
-  const [moduleView, setModuleView] = useState<number | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<"content" | "chat">("content");
+  
+  const [moduleIndex, setModuleIndex] = useState(0);
+  const [lessonIndex, setLessonIndex] = useState(0);
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
 
-const [moduleIndex, setModuleIndex] = useState(0);
-const [lessonIndex, setLessonIndex] = useState(0);
-const [completed, setCompleted] = useState<Set<string>>(new Set());
+  // Chat State
+  const [chatMessages, setChatMessages] = useState<{ sender: string; text: string }[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const isSendingRef = useRef(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const chatInputRef = useRef<HTMLInputElement | null>(null);
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
 
-// 🧠 load saved completed lessons (per user + course) from localStorage
-useEffect(() => {
-  // ✅ FIX: Use currentUserId instead of calling the deprecated getUserId()
-  if (!id || !currentUserId) return; 
+  // ------------------------------------------
+  // 3. Effects
+  // ------------------------------------------
 
-  const storageKey = `completed_${currentUserId}_${id}`;
-  const stored = localStorage.getItem(storageKey);
-  if (!stored) return;
+  // Restore completed lessons
+  useEffect(() => {
+    if (!id || !currentUserId) return;
+    const storageKey = `completed_${currentUserId}_${id}`;
+    const stored = localStorage.getItem(storageKey);
+    if (!stored) return;
+    try {
+      const arr = JSON.parse(stored) as string[];
+      setCompleted(new Set(arr));
+    } catch (e) {
+      console.error("Failed to parse saved completed lessons", e);
+    }
+  }, [id, currentUserId]);
 
-  try {
-    const arr = JSON.parse(stored) as string[];
-    setCompleted(new Set(arr));
-    console.log("[completed] restored from localStorage:", arr);
-  } catch (e) {
-    console.error("Failed to parse saved completed lessons", e);
-  }
-// ✅ FIX: Add currentUserId to dependency array
-}, [id, currentUserId]);
-
-
-  // 🔹 parse "module-lesson" slug from URL (e.g. "0-1"), default to "0-0"
+  // Parse URL slug
   useEffect(() => {
     const slug = lessonSlug ?? "0-0";
     const [mStr, lStr] = slug.split("-");
-    const mIdx = Number(mStr) || 0;
-    const lIdx = Number(lStr) || 0;
-    setModuleIndex(mIdx);
-    setLessonIndex(lIdx);
+    setModuleIndex(Number(mStr) || 0);
+    setLessonIndex(Number(lStr) || 0);
   }, [lessonSlug]);
 
+  // Scroll chat to bottom
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages, isTyping, sidebarTab]);
 
-  // 🔹 fetch course from PHP and map lessons → videoUrl
+  // Fetch Course
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -191,7 +201,7 @@ useEffect(() => {
               title: lesson.lesson_title,
               duration: lesson.lesson_duration ?? "",
               type: (lesson.lesson_type ?? "video") as Lesson["type"],
-              videoUrl: lesson.lesson_directory_url ?? null, // ⬅️ local MP4 URL
+              videoUrl: lesson.lesson_directory_url ?? null,
             })),
           })),
         };
@@ -208,34 +218,83 @@ useEffect(() => {
     fetchCourse();
   }, [id]);
 
+  // Keyboard Nav
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return; 
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "m" || e.key === "M") setSidebarOpen((s) => !s);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [moduleIndex, lessonIndex, courseData]);
+
+  // ------------------------------------------
+  // 4. Logic
+  // ------------------------------------------
+
   const totalLessons = courseData
     ? courseData.modules.reduce((a, m) => a + m.lessons.length, 0)
     : 0;
-
   const completedCount = completed.size;
-  const progress =
-    totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+  const progress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   const currentModule = courseData?.modules[moduleIndex];
   const currentLesson = currentModule?.lessons[lessonIndex];
 
-  // 🔹 keyboard navigation
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-      if (e.key === "m" || e.key === "M")
-        setSidebarOpen((s) => !s);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moduleIndex, lessonIndex]);
+  const updateCourseProgress = async (newProgress: number, lessonsFinished: number) => {
+    if (!currentUserId || !id) return;
+    try {
+      const formData = new FormData();
+      formData.append("user_id", String(currentUserId));
+      formData.append("course_id", String(id));
+      formData.append("progress", String(newProgress));
+      formData.append("lessons_finished", String(lessonsFinished));
+      formData.append("total_lessons", String(totalLessons));
+      await axios.post(UPDATE_PROGRESS_API, formData);
+    } catch (err) {
+      console.error("Failed to update course progress", err);
+    }
+  };
+
+  const toggleComplete = () => {
+    const key = `${moduleIndex}-${lessonIndex}`;
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+
+      const newFinished = next.size;
+      const newProg = totalLessons > 0 ? Math.round((newFinished / totalLessons) * 100) : 0;
+      
+      updateCourseProgress(newProg, newFinished);
+      if (id && currentUserId) {
+        localStorage.setItem(`completed_${currentUserId}_${id}`, JSON.stringify(Array.from(next)));
+      }
+      return next;
+    });
+  };
+
+  const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
+    const key = `${mIdx}-${lIdx}`;
+    setCompleted((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      const newFinished = next.size;
+      const newProg = totalLessons > 0 ? Math.round((newFinished / totalLessons) * 100) : 0;
+      updateCourseProgress(newProg, newFinished);
+      if (id && currentUserId) {
+        localStorage.setItem(`completed_${currentUserId}_${id}`, JSON.stringify(Array.from(next)));
+      }
+      return next;
+    });
+  };
 
   const next = () => {
     if (!courseData) return;
     const mod = courseData.modules;
-
     if (lessonIndex < mod[moduleIndex].lessons.length - 1) {
       setLessonIndex((li) => li + 1);
     } else if (moduleIndex < mod.length - 1) {
@@ -246,650 +305,475 @@ useEffect(() => {
 
   const prev = () => {
     if (!courseData) return;
-
     if (lessonIndex > 0) {
       setLessonIndex((li) => li - 1);
     } else if (moduleIndex > 0) {
       setModuleIndex((mi) => mi - 1);
-      setLessonIndex(
-        courseData.modules[moduleIndex - 1].lessons.length - 1
-      );
+      setLessonIndex(courseData.modules[moduleIndex - 1].lessons.length - 1);
     }
   };
-  
-const updateCourseProgress = async (
-  newProgress: number,
-  lessonsFinished: number
-) => {
-  // ✅ FIX: Use currentUserId variable
-  if (!currentUserId) {
-    console.warn("[updateCourseProgress] Missing user ID. Progress not saved.");
-    return;
-  }
-  const userId = currentUserId; 
 
-  console.log("[updateCourseProgress] payload", {
-    userId,
-    courseId: id,
-    newProgress,
-    lessonsFinished,
-  });
-
-  if (!id) {
-    console.warn("[updateCourseProgress] Missing courseId");
-    return;
-  }
-
-
-  try {
-    // 🔹 Send as regular form data so PHP can read via $_POST
-    const formData = new FormData();
-    formData.append("user_id", String(userId));
-    formData.append("course_id", String(id));
-    formData.append("progress", String(newProgress));
-    formData.append("lessons_finished", String(lessonsFinished));
-    formData.append("total_lessons", String(totalLessons));
-
-    const res = await axios.post(UPDATE_PROGRESS_API, formData);
-    console.log("[updateCourseProgress] success", res.data);
-  } catch (err) {
-    console.error("[updateCourseProgress] Failed to update course progress", err);
-  }
-};
-
-
-const toggleComplete = () => {
-  const key = `${moduleIndex}-${lessonIndex}`;
-
-  setCompleted((prev) => {
-    const next = new Set(prev);
-
-    if (next.has(key)) {
-      next.delete(key);
-    } else {
-      next.add(key);
-    }
-
-    const newLessonsFinished = next.size;
-    const newProgress =
-      totalLessons > 0
-        ? Math.round((newLessonsFinished / totalLessons) * 100)
-        : 0;
-
-    // 🔁 still update counts in DB
-    updateCourseProgress(newProgress, newLessonsFinished);
-
-    // 💾 save completed lessons in localStorage using SAME helper
-    if (id && currentUserId) { // ✅ FIX: Check and use currentUserId
-      const userId = currentUserId;
-      const storageKey = `completed_${userId}_${id}`;
-      const arr = Array.from(next);
-      localStorage.setItem(storageKey, JSON.stringify(arr));
-      console.log("[completed] saved to localStorage:", arr);
-    }
-
-    return next;
-  });
-};
-
-
-const autoMarkLessonVisited = (mIdx: number, lIdx: number) => {
-  const key = `${mIdx}-${lIdx}`;
-
-  setCompleted((prev) => {
-    // already counted → do nothing
-    if (prev.has(key)) return prev;
-
-    const next = new Set(prev);
-    next.add(key);
-
-    const newLessonsFinished = next.size;
-    const newProgress =
-      totalLessons > 0
-        ? Math.round((newLessonsFinished / totalLessons) * 100)
-        : 0;
-
-    // 🔁 save BOTH to DB for this user + this course
-    updateCourseProgress(newProgress, newLessonsFinished);
-
-    if (id && currentUserId) { // ✅ FIX: Save to localStorage using currentUserId
-        const userId = currentUserId;
-        const storageKey = `completed_${userId}_${id}`;
-        const arr = Array.from(next);
-        localStorage.setItem(storageKey, JSON.stringify(arr));
-    }
-
-
-    return prev; // Return prev if no change, or next if changed
-  });
-};
-
-
-
-
-  const chatInputRef = useRef<HTMLInputElement | null>(null);
-  useEffect(() => {
-    if (sidebarTab === "chat") chatInputRef.current?.focus();
-  }, [sidebarTab]);
-
-  // --------------------------
-  // ✅ AI CHAT STATES
-  // --------------------------
-  const [chatMessages, setChatMessages] = useState<
-    { sender: string; text: string }[]
-  >([]);
-  const [chatInput, setChatInput] = useState("");
-  const isSendingRef = useRef(false);
-
-  // Typing indicator
-  const [isTyping, setIsTyping] = useState(false);
-
-  // --------------------------
-  // ✅ sendChat() - Fixed user_id parsing & Added user check
-  // --------------------------
   const sendChat = async () => {
-    if (!chatInput.trim() || isSendingRef.current) return;
+    if (!chatInput.trim() || isSendingRef.current || !currentUserId) return;
     isSendingRef.current = true;
     
-    // Check if a valid user ID is available
-    if (!currentUserId) { // ✅ FIX: Check currentUserId
-        setChatMessages((prev) => [
-            ...prev,
-            { sender: "assistant", text: "Please sign in to use the AI assistant." },
-        ]);
-        setChatInput("");
-        isSendingRef.current = false;
-        return;
-    }
-
-
     const userMessage = chatInput.trim();
-    setChatMessages((prev) => [
-      ...prev,
-      { sender: "user", text: userMessage },
-    ]);
+    setChatMessages((prev) => [...prev, { sender: "user", text: userMessage }]);
     setChatInput("");
-
     setIsTyping(true);
 
     try {
-      const userId = currentUserId; // ✅ FIX: Use currentUserId
-
       const res = await axios.post("http://127.0.0.1:5000/chat", {
-        user_id: userId, // ✅ FIX: Use currentUserId
+        user_id: currentUserId,
         message: userMessage,
         lesson_title: currentLesson?.title ?? "",
         language: "en",
       });
-
       const reply = res.data.reply || "No response";
-      setChatMessages((prev) => [
-        ...prev,
-        { sender: "assistant", text: reply },
-      ]);
-      setIsTyping(false);
+      setChatMessages((prev) => [...prev, { sender: "assistant", text: reply }]);
     } catch (err) {
-      setChatMessages((prev) => [
-        ...prev,
-        { sender: "assistant", text: "Error: unable to reach AI server." },
-      ]);
+      setChatMessages((prev) => [...prev, { sender: "assistant", text: "Error connecting to Silay AI." }]);
+    } finally {
       setIsTyping(false);
+      isSendingRef.current = false;
     }
-
-    isSendingRef.current = false;
   };
 
-  // 🔒 guard AFTER all hooks
+  // ------------------------------------------
+  // 5. Render
+  // ------------------------------------------
+
   if (loading || !courseData || !currentModule || !currentLesson) {
     return (
-      <div className="w-full h-screen bg-background flex items-center justify-center">
-        <span className="text-sm text-slate-500">
-          {error ?? "Loading lesson..."}
-        </span>
+      <div className="w-full h-screen bg-zinc-950 flex flex-col items-center justify-center">
+         <div className="w-16 h-16 rounded-full border-2 border-white/10 border-t-[#F4B942] animate-spin mb-6" />
+         <span className="font-display tracking-widest text-sm uppercase text-[#F4B942]">Loading SilayLearn...</span>
       </div>
     );
   }
 
+  const isCompleted = completed.has(`${moduleIndex}-${lessonIndex}`);
+
   return (
-    // -----------------------------------------------------------------
-    // ✅ FIX: Force Component Reload when User or Course changes
-    // -----------------------------------------------------------------
-    <div 
-      key={`user-${currentUserId}-course-${id}`} // Add key
-      className="w-full h-screen bg-background text-slate-900 dark:text-zinc-200 flex flex-col overflow-hidden"
-    >
-      {/* Top Navigation */}
-      <nav className="h-16 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-4 flex-shrink-0 z-50">
-        <div className="flex items-center gap-4">
-          <button
-          onClick={() => navigate(`/courses/${id}`)}
-          className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-zinc-300" />
-          <span className="text-sm font-medium text-slate-700 dark:text-zinc-300">
-            Back to Course
-          </span>
-        </button>
+    <div className="relative h-screen w-full bg-zinc-950 text-white overflow-hidden font-sans selection:bg-[#F4B942]/30 selection:text-[#F4B942]">
+      
+      {/* 🔮 Background Layer (Matching About.tsx) */}
+      <div className="absolute inset-0 z-0">
+        <LiquidEther
+           colors={["#064e3b", "#022c22", "#0f766e"]} 
+           mouseForce={20}
+           cursorSize={100}
+           isViscous={false}
+           viscous={30}
+           iterationsViscous={32}
+           iterationsPoisson={32}
+           resolution={0.25}
+           isBounce={false}
+           autoDemo={true}
+           autoSpeed={0.4}
+           autoIntensity={1.8}
+        />
+        {/* Dark overlay for UI readability */}
+        <div className="absolute inset-0 bg-zinc-950/70 pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
+      </div>
 
+      {/* 🧭 Top Navigation Bar (Floating Glass) */}
+      <header className="relative z-30 h-16 px-4 lg:px-6 flex items-center justify-between border-b border-white/5 bg-zinc-950/30 backdrop-blur-xl">
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={() => navigate(`/courses/${id}`)}
+            className="group flex items-center gap-3 text-white/70 hover:text-white transition-all"
+          >
+            <div className="p-2 rounded-full border border-white/10 bg-white/5 group-hover:border-[#F4B942] group-hover:bg-[#F4B942]/10 transition-colors">
+               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            </div>
+            <div className="hidden sm:block">
+              <span className="block text-[10px] font-bold tracking-widest text-[#F4B942] uppercase opacity-70 group-hover:opacity-100">Return</span>
+              <span className="font-display text-sm tracking-wide">{courseData.title}</span>
+            </div>
+          </button>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:block text-sm font-semibold text-slate-800 dark:text-zinc-200">
-            {courseData.title}
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-600 dark:text-zinc-400">{progress}%</span>
-            <div className="w-32 h-2 bg-slate-100 dark:bg-zinc-700 rounded overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all"
-                style={{ width: `${progress}%` }}
+
+        {/* Center: Progress */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 hidden lg:flex items-center gap-3">
+          <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Progress</span>
+          <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden border border-white/5 shadow-inner">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-[#F4B942]" 
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
               />
-            </div>
           </div>
+          <span className="text-xs font-mono text-white/60">{progress}%</span>
         </div>
-      </nav>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <aside
-          className={`bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 z-40 transition-all duration-300 flex-shrink-0 font-sans
-        ${sidebarOpen ? "w-72" : "w-0"} 
-        ${sidebarOpen ? "block" : "hidden"} 
-        lg:${sidebarOpen ? "block w-72" : "hidden"}`}
-          style={{ minWidth: sidebarOpen ? 288 : 0 }}
-        >
-          <div className="h-full flex flex-col" style={{ height: "100vh" }}>
-            {/* header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-zinc-800">
-              <div className="flex items-center gap-3">
-                <div className="rounded-md bg-primary w-9 h-9 flex items-center justify-center text-white">
-                  <PlayCircle className="w-5 h-5" />
-                </div>
-                <div className="text-sm font-semibold text-slate-800 dark:text-zinc-200">Course</div>
-              </div>
-            </div>
+        {/* Right: Actions */}
+        <div className="flex items-center gap-3">
+           <button 
+             onClick={() => setSidebarOpen(!sidebarOpen)}
+             className="lg:hidden p-2 text-white/70 hover:text-[#F4B942]"
+           >
+             <Menu className="w-5 h-5" />
+           </button>
+           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+              <Clock className="w-3 h-3 text-[#F4B942]" />
+              <span className="text-xs text-white/80">{currentLesson.duration}</span>
+           </div>
+        </div>
+      </header>
 
-            {/* tab buttons */}
-            <div className="px-3 py-3 flex gap-2 border-b border-slate-100 dark:border-zinc-800">
-              <button
-                onClick={() => {
-                  setSidebarTab("content");
-                  setModuleView(null);
-                }}
-                className={`flex-1 py-2 rounded-md text-sm font-medium ${
-                  sidebarTab === "content"
-                    ? "bg-primary text-white"
-                    : "text-slate-700 bg-background dark:text-zinc-300 dark:bg-zinc-800"
-                }`}
-              >
-                Content
-              </button>
-              <button
-                onClick={() => setSidebarTab("chat")}
-                className={`flex-1 py-2 rounded-md text-sm font-medium ${
-                  sidebarTab === "chat"
-                    ? "bg-primary text-white"
-                    : "text-slate-700 bg-background dark:text-zinc-300 dark:bg-zinc-800"
-                }`}
-              >
-                AI Chat
-              </button>
-            </div>
-
-            {/* content area */}
-            <div
-              className="p-3 flex-1 flex flex-col gap-3"
-              style={{ minHeight: 0 }}
+      {/* 📦 Main Workspace */}
+      <div className="relative z-20 flex h-[calc(100vh-64px)]">
+        
+        {/* ◀️ Left Sidebar (Glass Panel) */}
+        <AnimatePresence initial={false}>
+          {sidebarOpen && (
+            <motion.aside
+              initial={{ width: 0, opacity: 0, x: -20 }}
+              animate={{ width: 360, opacity: 1, x: 0 }}
+              exit={{ width: 0, opacity: 0, x: -20 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+              className="absolute lg:relative z-40 h-full flex-shrink-0 border-r border-white/5 bg-zinc-950/80 backdrop-blur-2xl flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.5)]"
             >
-              {/* progress */}
-              <div className="px-2">
-                <div className="text-xs text-slate-500 dark:text-zinc-400">Progress</div>
-                <div className="w-full h-2 rounded bg-slate-100 dark:bg-zinc-700 mt-1 overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <div className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
-                  {completedCount}/{totalLessons} lessons
-                </div>
+              {/* Sidebar Tabs */}
+              <div className="p-4 flex gap-2 border-b border-white/5">
+                <button
+                  onClick={() => setSidebarTab("content")}
+                  className={cn(
+                    "flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all relative overflow-hidden",
+                    sidebarTab === "content" 
+                      ? "text-white bg-white/5 border border-white/10 shadow-lg" 
+                      : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                  )}
+                >
+                  {sidebarTab === "content" && <div className="absolute inset-0 bg-gradient-to-tr from-[#F4B942]/10 to-transparent opacity-50" />}
+                  Lessons
+                </button>
+                <button
+                  onClick={() => setSidebarTab("chat")}
+                  className={cn(
+                    "flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 relative overflow-hidden",
+                    sidebarTab === "chat" 
+                      ? "text-white bg-white/5 border border-white/10 shadow-lg" 
+                      : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                  )}
+                >
+                  {sidebarTab === "chat" && <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent opacity-50" />}
+                  <Sparkles className={cn("w-3 h-3", sidebarTab === "chat" ? "text-emerald-400" : "")} />
+                  AI Coach
+                </button>
               </div>
 
-              {/* content tab */}
-              {sidebarTab === "content" && (
-                <div
-                  className="flex-1 flex flex-col gap-2"
-                  style={{ minHeight: 0 }}
-                >
-                  <div className="text-sm font-semibold text-slate-700 dark:text-zinc-300 px-1">
-                    Modules
-                  </div>
-
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="w-full space-y-2"
-                  >
-                    {courseData.modules.map((m, i) => (
-                      <AccordionItem
-                        key={i}
-                        value={`sidebar-module-${i}`}
-                        className="bg-background dark:bg-zinc-800 rounded-md border border-slate-200 dark:border-zinc-700 hover:shadow-md transition-shadow duration-200 overflow-hidden"
-                      >
-                        <AccordionTrigger className="px-3 py-2 hover:no-underline flex justify-between text-left font-sans">
-                          <div className="flex flex-col truncate">
-                            <span className="text-sm text-slate-800 dark:text-zinc-200 truncate">
-                              {m.title}
-                            </span>
-                            <span className="text-xs text-slate-500 dark:text-zinc-400">
-                              {m.lessons.length} lessons • {m.duration}
-                            </span>
-                          </div>
-                        </AccordionTrigger>
-
-                        <AccordionContent className="px-3 pb-3">
-                          <div className="flex flex-col gap-1">
-                            {m.lessons.map((lesson, li) => (
-                              <button
-                                key={li}
-                                onClick={() => {
-                                  setModuleIndex(i);
-                                  setLessonIndex(li);
-
-                                  if (window.innerWidth < 1024) {
-                                    setSidebarOpen(false);
-                                  }
-                                }}
-                                className={`flex items-center justify-between py-1.5 px-2 rounded text-left transition-colors
-                                ${
-                                  moduleIndex === i && lessonIndex === li
-                                    ? "bg-primary text-white "
-                                    : "bg-transparent text-slate-700 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                                }`}
-                              >
-                                <span
-                                  className={`text-xs truncate 
-                                ${
-                                  moduleIndex === i && lessonIndex === li
-                                    ? "text-white font-medium "
-                                    : "text-slate-700 dark:text-zinc-300"
-                                }`}
-                                >
-                                  {lesson.title}
-                                </span>
-
-                                <span
-                                  className={`text-[10px] 
-                                ${
-                                  moduleIndex === i && lessonIndex === li
-                                    ? "text-white "
-                                    : "text-slate-400 dark:text-zinc-500"
-                                }`}
-                                >
-                                  {lesson.duration}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-
-                  {/* footer */}
-                  <div className="mt-auto px-1 py-2">
-                    <button
-                      onClick={() => {
-                        setModuleIndex(0);
-                        setLessonIndex(0);
-                      }}
-                      className="w-full py-2 rounded-md bg-primary text-white text-sm"
-                    >
-                      Start Course
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Chat Tab */}
-              {sidebarTab === "chat" && (
-                <div
-                  className="flex-1 flex flex-col gap-2"
-                  style={{ minHeight: 0 }}
-                >
-                  <div className="text-sm font-semibold text-slate-700 dark:text-zinc-300">
-                    Assistant
-                  </div>
-
-                  <div
-                    className="flex-1 rounded-md bg-background dark:bg-zinc-800 pb-3 flex flex-col justify-end"
-                    style={{ minHeight: 0 }}
-                  >
-                    {/* Chat messages */}
-                    <div className="flex-1 overflow-y-auto mb-2 pr-1">
-                      {chatMessages.map((msg, idx) =>
-                        msg.sender === "assistant" ? (
-                          <div
-                            key={idx}
-                            className="flex items-start gap-2 mb-2 max-w-[90%]"
-                          >
-                            {/* Avatar */}
-                            {/* Assuming you have a default assistant image at /assistant.jpg */}
-                            <img
-                              src="/assistant.jpg"
-                              alt="AI Avatar"
-                              className="w-8 h-8 rounded-full object-cover select-none flex-shrink-0"
-                            />
-
-                            {/* Assistant bubble (Rounded-lg for softer look) */}
-                            <div className="text-xs p-2 rounded-lg bg-slate-200 dark:bg-zinc-700 dark:text-zinc-200 text-slate-800">
-                              {msg.text}
+              {/* Sidebar Content */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+                
+                {/* 📂 Tab: CONTENT */}
+                {sidebarTab === "content" && (
+                  <div className="p-4 space-y-4">
+                    <Accordion type="single" collapsible defaultValue={`item-${moduleIndex}`} className="space-y-4">
+                      {courseData.modules.map((m, i) => (
+                        <AccordionItem 
+                          key={i} 
+                          value={`item-${i}`} 
+                          className="border-none"
+                        >
+                          <AccordionTrigger className="group flex items-center justify-between p-0 hover:no-underline mb-3">
+                            <div className="text-left pl-1">
+                               <div className="text-xs font-bold text-[#F4B942] uppercase tracking-wider mb-1 opacity-80">Module {i + 1}</div>
+                               <div className="font-display text-sm text-white group-hover:text-[#F4B942] transition-colors">{m.title}</div>
                             </div>
-                          </div>
-                        ) : (
-                          <div
-                            key={idx}
-                            className="text-xs mb-2 p-2 rounded-lg max-w-[85%] bg-primary text-white ml-auto"
-                          >
-                            {msg.text}
-                          </div>
-                        )
-                      )}
+                          </AccordionTrigger>
+                          <AccordionContent className="pt-0 pb-2">
+                             <div className="space-y-1">
+                                {m.lessons.map((l, li) => {
+                                   const isActive = moduleIndex === i && lessonIndex === li;
+                                   const isDone = completed.has(`${i}-${li}`);
+                                   
+                                   return (
+                                     <button
+                                       key={li}
+                                       onClick={() => {
+                                          setModuleIndex(i);
+                                          setLessonIndex(li);
+                                          autoMarkLessonVisited(i, li);
+                                          if (window.innerWidth < 1024) setSidebarOpen(false);
+                                       }}
+                                       className={cn(
+                                          "w-full text-left flex items-center gap-3 p-3 rounded-xl text-xs transition-all duration-300 relative overflow-hidden border",
+                                          isActive 
+                                            ? "bg-white/10 border-[#F4B942]/30 shadow-[0_0_15px_rgba(244,185,66,0.1)]"
+                                            : "border-transparent hover:bg-white/5 hover:border-white/5"
+                                       )}
+                                     >
+                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F4B942]" />}
+                                        
+                                        <div className={cn(
+                                            "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border transition-colors",
+                                            isActive 
+                                              ? "border-[#F4B942] bg-[#F4B942]/20 text-[#F4B942]" 
+                                              : isDone 
+                                                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-500" 
+                                                : "border-white/10 text-zinc-500"
+                                        )}>
+                                           {isDone ? <CheckCircle className="w-3 h-3" /> : (l.type === "video" ? <Play className="w-2.5 h-2.5 ml-0.5" /> : <FileText className="w-2.5 h-2.5" />)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                           <div className={cn("font-medium truncate", isActive ? "text-white" : "text-zinc-400 group-hover:text-zinc-200")}>{l.title}</div>
+                                           <div className="text-[10px] text-zinc-600">{l.duration}</div>
+                                        </div>
+                                     </button>
+                                   )
+                                })}
+                             </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </div>
+                )}
 
-                      {/* ⭐ TYPING INDICATOR */}
-                      {isTyping && (
-                        <div className="flex items-start gap-2 mb-2 max-w-[90%]">
-                          <img
-                            src="/assistant.jpg"
-                            alt="AI Avatar"
-                            className="w-8 h-8 rounded-full object-cover select-none"
-                          />
-
-                          <div className="px-3 py-2 rounded-md bg-slate-200 dark:bg-zinc-700 text-slate-600 dark:text-zinc-400 text-xs flex items-center gap-1">
-                            <span className="animate-bounce">●</span>
-                            <span className="animate-bounce delay-150">
-                              ●
-                            </span>
-                            <span className="animate-bounce delay-300">
-                              ●
-                            </span>
-                          </div>
+                {/* 🤖 Tab: CHAT */}
+                {sidebarTab === "chat" && (
+                  <div className="h-full flex flex-col p-4">
+                     <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto mb-4 pr-1 scroll-smooth">
+                        {/* Intro */}
+                        <div className="flex flex-col items-center justify-center py-8 text-center space-y-3 opacity-60">
+                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] grid place-items-center">
+                              <Sparkles className="w-6 h-6 text-black" />
+                           </div>
+                           <p className="text-xs text-zinc-400 max-w-[200px]">
+                             I'm Silay, your heritage guide. Ask me about the culture behind this lesson.
+                           </p>
                         </div>
-                      )}
-                    </div>
 
-                    <div className="text-xs text-slate-600 dark:text-zinc-400 mb-2">
-                      Type a question about the lesson.
-                    </div>
-                    
-                    {/* 👇🏼 FIX: Added px-3 and changed py-1.5 to py-2 for better spacing */}
-                    <div className="flex gap-2">
-                      <input
-                        ref={chatInputRef}
-                        type="text"
-                        placeholder="Ask the assistant..."
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") sendChat();
-                        }}
-                        // ✅ FIX: Added px-3 for horizontal padding and py-2 for height
-                        className="flex-1 rounded-md border border-slate-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-2 px-3 text-sm" 
-                        disabled={isSendingRef.current || !currentUserId}
-                      />
+                        {chatMessages.map((msg, i) => (
+                           <motion.div 
+                             initial={{ opacity: 0, y: 10 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             key={i} 
+                             className={cn("flex gap-3", msg.sender === "user" ? "flex-row-reverse" : "")}
+                           >
+                              {msg.sender === "assistant" ? (
+                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center border border-white/20 shadow-lg flex-shrink-0 mt-1">
+                                   <Sparkles className="w-4 h-4 text-emerald-950" />
+                                 </div>
+                              ) : (
+                                 <div className="w-8 h-8 rounded-full bg-[#F4B942] border border-white/20 shadow-lg flex-shrink-0 mt-1 overflow-hidden flex items-center justify-center">
+                                    {userAvatar ? (
+                                        <img src={userAvatar} alt="User" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <UserIcon className="w-4 h-4 text-black" />
+                                    )}
+                                 </div>
+                              )}
+                              
+                              <div className={cn(
+                                 "p-3.5 rounded-2xl text-xs leading-relaxed shadow-lg max-w-[85%]",
+                                 msg.sender === "user" 
+                                    ? "bg-[#F4B942] text-zinc-900 font-medium rounded-tr-sm"
+                                    : "bg-white/10 backdrop-blur-xl border border-white/10 text-zinc-100 rounded-tl-sm"
+                              )}>
+                                 {msg.text}
+                              </div>
+                           </motion.div>
+                        ))}
+                        
+                        {isTyping && (
+                           <div className="flex gap-3">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center border border-white/20 shadow-lg flex-shrink-0">
+                                <Sparkles className="w-4 h-4 text-emerald-950" />
+                              </div>
+                              <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/5 backdrop-blur-md border border-white/5 flex items-center gap-1">
+                                 <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" />
+                                 <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce delay-75" />
+                                 <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce delay-150" />
+                              </div>
+                           </div>
+                        )}
+                     </div>
 
-                      <Button 
-                        size="sm" 
-                        onClick={sendChat}
-                        disabled={!chatInput.trim() || isSendingRef.current || !currentUserId}
-                      >
-                        Send
-                      </Button>
-                    </div>
-                    {/* 👆🏼 END FIX */}
-                  </div>
-
-                  <div className="text-xs text-slate-400 dark:text-zinc-500">
-                    Tip: press{" "}
-                    <kbd className="px-1 rounded bg-slate-100 dark:bg-zinc-700 dark:text-zinc-400">m</kbd> to
-                    toggle sidebar,{" "}
-                    <kbd className="px-1 rounded bg-slate-100 dark:bg-zinc-700 dark:text-zinc-400">←</kbd>/
-                    <kbd className="px-1 rounded bg-slate-100 dark:bg-zinc-700 dark:text-zinc-400">→</kbd> to
-                    navigate.
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </aside>
-
-        {/* Main player */}
-        <main className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 flex" style={{ minHeight: 0 }}>
-            {/* Player */}
-            <section className="flex-1 flex flex-col bg-zinc-900">
-              <div className="flex-1 flex items-center justify-center">
-                {currentLesson.type === "video" && currentLesson.videoUrl ? (
-                  <video
-                    key={currentLesson.videoUrl}
-                    className="w-full max-w-4xl h-full max-h-[60vh]"
-                    controls
-                  >
-                    <source
-                      src={currentLesson.videoUrl}
-                      type="video/mp4"
-                    />
-                    Your browser does not support the video tag.
-                  </video>
-                ) : (
-                  <div className="w-full max-w-4xl h-full max-h-[60vh] flex items-center justify-center text-white/80">
-                    No video
+                     {/* Input Area */}
+                     <div className="relative pt-2 border-t border-white/5">
+                        <input
+                           ref={chatInputRef}
+                           type="text"
+                           value={chatInput}
+                           onChange={(e) => setChatInput(e.target.value)}
+                           onKeyDown={(e) => e.key === "Enter" && sendChat()}
+                           disabled={isSendingRef.current || !currentUserId}
+                           placeholder="Ask a question..."
+                           className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#F4B942]/50 focus:bg-white/10 transition-all shadow-inner"
+                        />
+                        <button 
+                           onClick={sendChat}
+                           disabled={!chatInput.trim()}
+                           className="absolute right-2 top-1/2 -translate-y-1/2 mt-1 p-1.5 bg-[#F4B942] rounded-lg text-black hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-lg shadow-orange-500/20"
+                        >
+                           <Send className="w-4 h-4" />
+                        </button>
+                     </div>
                   </div>
                 )}
               </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
 
-              <div className="h-20 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 flex items-center px-4 justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
-                    {currentLesson.title}
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-zinc-400">
-                    Module {moduleIndex + 1} • {currentModule.title}
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 ">
-                  <button
-                    onClick={prev}
-                    className="px-3 py-2 rounded-md border border-slate-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 dark:text-zinc-300 hover:bg-background dark:hover:bg-zinc-600"
-                  >
-                    <ChevronLeft />
-                  </button>
-                  <button
+        {/* 🎬 Main Content */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto scroll-smooth">
+           
+           {/* Sidebar Toggle (Floating) */}
+           <AnimatePresence>
+             {!sidebarOpen && (
+               <motion.button
+                 initial={{ opacity: 0, x: -20 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 exit={{ opacity: 0, x: -20 }}
+                 onClick={() => setSidebarOpen(true)}
+                 className="fixed bottom-6 left-6 z-50 p-3.5 bg-zinc-950/90 backdrop-blur-xl border border-white/10 text-white rounded-full hover:border-[#F4B942] hover:text-[#F4B942] transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
+               >
+                 <Menu className="w-5 h-5 group-hover:scale-110 transition-transform" />
+               </motion.button>
+             )}
+           </AnimatePresence>
+
+           <div className="w-full max-w-6xl mx-auto p-4 lg:p-8 flex flex-col gap-8">
+              
+              {/* Premium Video Player Container */}
+              <div className="relative group rounded-3xl overflow-hidden bg-black shadow-[0_30px_80px_rgba(0,0,0,0.6)] border border-white/10 ring-1 ring-white/5 transition-transform duration-500">
+                 
+                 {/* Video Area */}
+                 <div className="aspect-video bg-zinc-900 relative flex items-center justify-center overflow-hidden">
+                    {/* Background glow behind video */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/20 to-transparent pointer-events-none" />
+                    
+                    {currentLesson.type === "video" && currentLesson.videoUrl ? (
+                      <video
+                        key={currentLesson.videoUrl}
+                        className="w-full h-full object-contain relative z-10"
+                        controls
+                        controlsList="nodownload"
+                        poster="/placeholder-poster.jpg"
+                      >
+                        <source src={currentLesson.videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <div className="flex flex-col items-center gap-4 text-zinc-500 z-10">
+                         <div className="w-20 h-20 rounded-full bg-white/5 border border-white/5 flex items-center justify-center shadow-2xl">
+                            <Lock className="w-8 h-8 text-zinc-600" />
+                         </div>
+                         <p className="font-display tracking-wide">Content Locked</p>
+                      </div>
+                    )}
+                 </div>
+
+                 {/* Controls Bar (Glass Overlay) */}
+                 <div className="relative bg-zinc-950/90 border-t border-white/10 p-5 lg:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 backdrop-blur-md">
+                    <div>
+                       <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-bold text-[#F4B942] uppercase tracking-wider px-2 py-0.5 rounded bg-[#F4B942]/10 border border-[#F4B942]/20">
+                            Lesson {lessonIndex + 1}
+                          </span>
+                       </div>
+                       <h2 className="text-xl sm:text-2xl font-display font-bold text-white tracking-wide">{currentLesson.title}</h2>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                       <button onClick={prev} className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 transition-all active:scale-95">
+                          <ChevronLeft className="w-5 h-5" />
+                       </button>
+
+                       <button 
+                          onClick={toggleComplete}
+                          className={cn(
+                             "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold uppercase text-xs tracking-wider transition-all shadow-lg active:scale-95",
+                             isCompleted
+                               ? "bg-emerald-500 text-emerald-950 shadow-emerald-500/20 hover:bg-emerald-400 border border-emerald-400"
+                               : "bg-white text-zinc-900 hover:bg-zinc-200 border border-white"
+                          )}
+                       >
+                          {isCompleted ? <CheckCircle className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border-2 border-zinc-900/30" />}
+                          <span>{isCompleted ? "Completed" : "Mark Done"}</span>
+                       </button>
+
+                       <button onClick={next} className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 transition-all active:scale-95">
+                          <ChevronRight className="w-5 h-5" />
+                       </button>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Bottom Info Grid */}
+              <div className="grid lg:grid-cols-3 gap-6">
+                 {/* Notes Card */}
+                 <div className="lg:col-span-2 relative p-8 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl overflow-hidden group">
+                    {/* Decorative shimmer */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    
+                    <h3 className="text-lg font-display font-semibold text-white mb-4 flex items-center gap-2">
+                       <div className="p-1.5 rounded-lg bg-[#F4B942]/10 border border-[#F4B942]/20">
+                          <FileText className="w-4 h-4 text-[#F4B942]" />
+                       </div>
+                       Lesson Notes
+                    </h3>
+                    <p className="text-zinc-400 leading-relaxed font-light">
+                       In this lesson, we explore the cultural significance of <span className="text-white font-medium">{currentLesson.title}</span>. 
+                       Understanding the roots of this topic is essential for mastering the broader module of <span className="text-emerald-400">{currentModule.title}</span>. 
+                       Take your time to absorb the visual details presented in the video.
+                    </p>
+
+                    <div className="mt-6 pt-6 border-t border-white/5 flex gap-8">
+                       <div>
+                          <span className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Duration</span>
+                          <span className="text-sm font-medium text-white flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                            {currentLesson.duration}
+                          </span>
+                       </div>
+                       <div>
+                          <span className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Format</span>
+                          <span className="text-sm font-medium text-white capitalize flex items-center gap-1.5">
+                            <Play className="w-3.5 h-3.5 text-zinc-500" />
+                            {currentLesson.type}
+                          </span>
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* Up Next Card */}
+                 <div 
                     onClick={next}
-                    className="px-3 py-2 rounded-md bg-primary text-white hover:bg-violet-700"
-                  >
-                    <ChevronRight />
-                  </button>
-                  <button
-                    onClick={toggleComplete}
-                    className={`px-3 py-2 rounded-md flex items-center gap-2 border ${
-                      completed.has(`${moduleIndex}-${lessonIndex}`)
-                        ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700"
-                        : "border-slate-200 bg-white text-slate-700 dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-600"
-                    }`}
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm">
-                      {completed.has(`${moduleIndex}-${lessonIndex}`)
-                        ? "Completed"
-                        : "Mark"}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </section>
+                    className="relative p-8 rounded-3xl bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl border border-white/10 shadow-xl flex flex-col cursor-pointer group hover:border-[#F4B942]/30 transition-all duration-300 hover:-translate-y-1"
+                 >
+                    <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ArrowLeft className="w-5 h-5 text-[#F4B942] rotate-180" />
+                    </div>
 
-            {/* Right lesson overview */}
-            <aside
-              className="w-80 bg-white dark:bg-zinc-900 border-l border-slate-200 dark:border-zinc-800 flex flex-col"
-              style={{ minWidth: 320 }}
-            >
-              <div className="p-4 border-b dark:border-zinc-800">
-                <div className="text-sm font-semibold text-slate-800 dark:text-zinc-200">Lesson Overview</div>
-                <div className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                  {currentLesson.duration}
-                </div>
+                    <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">Up Next</h3>
+                    
+                    {courseData.modules[moduleIndex].lessons[lessonIndex + 1] ? (
+                       <div className="mt-auto">
+                          <div className="text-xl font-display font-bold text-white group-hover:text-[#F4B942] transition-colors leading-tight mb-2">
+                             {courseData.modules[moduleIndex].lessons[lessonIndex + 1].title}
+                          </div>
+                          <div className="text-sm text-zinc-400 flex items-center gap-2">
+                             <span>Start next lesson</span>
+                          </div>
+                       </div>
+                    ) : (
+                       <div className="mt-auto text-zinc-500 text-sm italic flex flex-col gap-2">
+                          <CheckCircle className="w-8 h-8 text-emerald-500 mb-2" />
+                          <span>You have reached the end of this module.</span>
+                       </div>
+                    )}
+                 </div>
               </div>
-              <div
-                className="p-3 flex-1 flex flex-col text-slate-800 dark:text-zinc-300"
-                style={{ minHeight: 0 }}
-              >
-                <div className="text-sm font-medium">What you'll learn</div>
-                <ul className="mt-2 text-sm text-slate-600 dark:text-zinc-400 space-y-2">
-                  <li>Key context and background</li>
-                  <li>PSi jake occena kag carlos</li>
-                  <li>nga mga mamaw sa prog :o </li>
-                </ul>
 
-                <div className="mt-auto">
-                  <div className="text-xs text-slate-500 dark:text-zinc-500 mb-2">
-                    Jump to lesson
-                  </div>
-                  <div className="grid grid-cols-1 gap-2">
-                    {courseData.modules
-                      .flatMap((m, mi) =>
-                        m.lessons.map((l, li) => ({
-                          mi,
-                          li,
-                          title: l.title,
-                        }))
-                      )
-                      .slice(0, 6)
-                      .map((item, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            setModuleIndex(item.mi);
-                            setLessonIndex(item.li);
-                             autoMarkLessonVisited(item.mi, item.li);
-                          }}
-                          className={`flex items-center justify-between py-1.5 px-2 rounded text-left transition-colors
-                                  ${
-                                    moduleIndex === item.mi &&
-                                    lessonIndex === item.li
-                                      ? "bg-primary text-white "
-                                      : "bg-transparent text-slate-700 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                                  }`}
-                        >
-                          {item.title}
-                        </button>
-                      ))}
-                  </div>
-                </div>
-              </div>
-            </aside>
-          </div>
+           </div>
         </main>
       </div>
     </div>
