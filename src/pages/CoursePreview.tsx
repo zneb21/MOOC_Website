@@ -210,12 +210,12 @@ const CoursePreview = () => {
   const isEditingMode = editingReviewId !== null;
 
   // Render Logic
-  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-[#F4B942]">Loading...</div>;
+  if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex items-center justify-center text-emerald-600 dark:text-[#F4B942]">Loading...</div>;
 
   const numericId = id ?? "1";
   const db = dbCourses?.find((c) => String(c.course_id) === numericId);
 
-  if (!db) return <div className="min-h-screen bg-zinc-950 text-white p-10">{error ?? "Course not found"}</div>;
+  if (!db) return <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-zinc-900 dark:text-white p-10">{error ?? "Course not found"}</div>;
 
   const averageRating = allReviews.length > 0 ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length : 0;
 
@@ -248,7 +248,7 @@ const CoursePreview = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-zinc-950 text-white font-sans overflow-x-hidden selection:bg-[#F4B942]/30 selection:text-[#F4B942]">
+    <div className="relative min-h-screen bg-slate-50 dark:bg-zinc-950 text-zinc-900 dark:text-white font-sans overflow-x-hidden selection:bg-[#F4B942]/30 selection:text-[#F4B942]">
       {/* 🔮 Background Layer */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <LiquidEther
@@ -265,8 +265,8 @@ const CoursePreview = () => {
            autoSpeed={0.4}
            autoIntensity={1.8}
         />
-        <div className="absolute inset-0 bg-zinc-950/75" />
-        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
+        <div className="absolute inset-0 bg-slate-50/75 dark:bg-zinc-950/75" />
+        <div className="absolute inset-0 opacity-[0.1] dark:opacity-[0.03] bg-[radial-gradient(circle_at_1px_1px,black_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
       </div>
 
       <Navbar />
@@ -279,30 +279,30 @@ const CoursePreview = () => {
               
               {/* Left: Text Info */}
               <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F4B942]/10 border border-[#F4B942]/20 backdrop-blur-md">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 dark:bg-[#F4B942]/10 border border-emerald-500/20 dark:border-[#F4B942]/20 backdrop-blur-md">
                    <span className="w-1.5 h-1.5 rounded-full bg-[#F4B942]" />
-                   <span className="text-xs font-bold text-[#F4B942] tracking-wider uppercase">{course.category}</span>
+                   <span className="text-xs font-bold text-emerald-700 dark:text-[#F4B942] tracking-wider uppercase">{course.category}</span>
                 </div>
 
-                <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-zinc-900 dark:text-white leading-tight">
                   {course.title}
                 </h1>
 
-                <p className="text-lg text-zinc-300 leading-relaxed max-w-xl">
+                <p className="text-lg text-zinc-700/90 dark:text-zinc-300 leading-relaxed max-w-xl">
                   {course.longDescription}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-6 text-sm">
-                   <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md">
+                   <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 backdrop-blur-md">
                       <Star className="w-4 h-4 text-[#F4B942] fill-[#F4B942]" />
-                      <span className="font-bold text-white">{course.rating}</span>
-                      <span className="text-zinc-400">({course.reviews.length} reviews)</span>
+                      <span className="font-bold text-zinc-900 dark:text-white">{course.rating}</span>
+                      <span className="text-zinc-500 dark:text-zinc-400">({course.reviews.length} reviews)</span>
                    </div>
-                   <div className="flex items-center gap-2 text-zinc-400">
+                   <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
                       <Users className="w-4 h-4" />
                       <span>{course.students.toLocaleString()} students</span>
                    </div>
-                   <div className="flex items-center gap-2 text-zinc-400">
+                   <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
                       <Clock className="w-4 h-4" />
                       <span>{course.duration}</span>
                    </div>
@@ -310,7 +310,7 @@ const CoursePreview = () => {
 
                 <div className="flex items-center gap-3 pt-2">
                    {course.instructorImage ? (
-                      <img src={course.instructorImage} alt={course.instructor} className="w-12 h-12 rounded-full object-cover border-2 border-white/10" />
+                      <img src={course.instructorImage} alt={course.instructor} className="w-12 h-12 rounded-full object-cover border-2 border-black/10 dark:border-white/10" />
                    ) : (
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-display font-bold text-lg border-2 border-white/10">
                          {course.instructor.charAt(0)}
@@ -318,19 +318,19 @@ const CoursePreview = () => {
                    )}
                    <div>
                       <p className="text-sm text-zinc-400">Instructor</p>
-                      <p className="font-semibold text-white">{course.instructor}</p>
+                      <p className="font-semibold text-zinc-900 dark:text-white">{course.instructor}</p>
                    </div>
                 </div>
               </div>
 
               {/* Right: Floating Card */}
               <div className="relative group lg:sticky lg:top-32">
-                 <div className="absolute -inset-1 bg-gradient-to-br from-[#F4B942]/20 to-emerald-500/20 rounded-[2rem] blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-500" />
-                 <div className="relative bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-[1.8rem] overflow-hidden shadow-2xl">
+                 <div className="absolute -inset-1 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 dark:from-[#F4B942]/20 dark:to-emerald-500/20 rounded-[2rem] blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-500" />
+                 <div className="relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-[1.8rem] overflow-hidden shadow-2xl">
                     <div className="relative aspect-video overflow-hidden">
                        <img src={course.image} alt={course.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-                          <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-xl cursor-pointer">
+                          <div className="w-16 h-16 rounded-full bg-black/10 dark:bg-white/10 backdrop-blur-md border border-black/20 dark:border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-xl cursor-pointer">
                              <Play className="w-6 h-6 text-white ml-1" />
                           </div>
                        </div>
@@ -339,12 +339,12 @@ const CoursePreview = () => {
                     <div className="p-8">
                        <div className="flex items-end justify-between mb-6">
                           <div>
-                             <p className="text-zinc-400 text-sm mb-1">Total Price</p>
-                             <h3 className="font-display text-4xl font-bold text-white tracking-tight">{course.price}</h3>
+                             <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-1">Total Price</p>
+                             <h3 className="font-display text-4xl font-bold text-zinc-900 dark:text-white tracking-tight">{course.price}</h3>
                           </div>
                           <div className="text-right">
-                             <div className="text-[#F4B942] text-xs font-bold uppercase tracking-wider mb-1">One-time payment</div>
-                             <div className="text-zinc-500 text-xs">Lifetime access</div>
+                             <div className="text-emerald-600 dark:text-[#F4B942] text-xs font-bold uppercase tracking-wider mb-1">One-time payment</div>
+                             <div className="text-zinc-500 dark:text-zinc-500 text-xs">Lifetime access</div>
                           </div>
                        </div>
                        
@@ -356,7 +356,7 @@ const CoursePreview = () => {
                           Enroll Now
                        </Button>
                        
-                       <p className="text-center text-zinc-500 text-xs mt-4 flex items-center justify-center gap-1">
+                       <p className="text-center text-zinc-500 dark:text-zinc-500 text-xs mt-4 flex items-center justify-center gap-1">
                           <Award className="w-3 h-3" /> 30-day money-back guarantee
                        </p>
                     </div>
@@ -371,14 +371,14 @@ const CoursePreview = () => {
                <div className="lg:col-span-2 space-y-12">
                   
                   {/* Learning Objectives */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8">
-                     <h3 className="font-display text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <BookOpen className="w-6 h-6 text-[#F4B942]" />
+                  <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-black/10 dark:border-white/10 rounded-3xl p-8">
+                     <h3 className="font-display text-2xl font-bold text-zinc-900 dark:text-white mb-6 flex items-center gap-3">
+                        <BookOpen className="w-6 h-6 text-emerald-600 dark:text-[#F4B942]" />
                         What You'll Learn
                      </h3>
                      <div className="grid sm:grid-cols-2 gap-4">
                         {course.objectives.map((obj, i) => (
-                           <div key={i} className="flex items-start gap-3 text-zinc-300">
+                           <div key={i} className="flex items-start gap-3 text-zinc-700 dark:text-zinc-300">
                               <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                               <span className="text-sm leading-relaxed">{obj}</span>
                            </div>
@@ -388,38 +388,38 @@ const CoursePreview = () => {
 
                   {/* Syllabus / Modules */}
                   <div className="space-y-6">
-                     <h3 className="font-display text-2xl font-bold text-white flex items-center gap-3">
-                        <PlayCircle className="w-6 h-6 text-[#F4B942]" />
+                     <h3 className="font-display text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
+                        <PlayCircle className="w-6 h-6 text-emerald-600 dark:text-[#F4B942]" />
                         Course Syllabus
                      </h3>
                      
                      <div className="space-y-4">
                         <Accordion type="single" collapsible className="w-full space-y-4">
                            {course.modules.map((mod, i) => (
-                              <AccordionItem key={i} value={`mod-${i}`} className="border-none bg-white/5 border border-white/5 rounded-2xl overflow-hidden">
-                                 <AccordionTrigger className="px-6 py-4 hover:bg-white/5 hover:no-underline transition-colors group">
+                              <AccordionItem key={i} value={`mod-${i}`} className="border-none bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl overflow-hidden">
+                                 <AccordionTrigger className="px-6 py-4 hover:bg-black/5 dark:hover:bg-white/5 hover:no-underline transition-colors group">
                                     <div className="flex items-center gap-4 text-left">
-                                       <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#F4B942] font-bold group-hover:bg-[#F4B942] group-hover:text-black transition-colors">
+                                       <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center text-emerald-600 dark:text-[#F4B942] font-bold group-hover:bg-emerald-500 dark:group-hover:bg-[#F4B942] group-hover:text-black transition-colors">
                                           {i + 1}
                                        </div>
                                        <div>
-                                          <h4 className="font-semibold text-white group-hover:text-[#F4B942] transition-colors">{mod.title}</h4>
-                                          <p className="text-xs text-zinc-500 mt-0.5">{mod.lessons.length} lessons • {mod.duration}</p>
+                                          <h4 className="font-semibold text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-[#F4B942] transition-colors">{mod.title}</h4>
+                                          <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">{mod.lessons.length} lessons • {mod.duration}</p>
                                        </div>
                                     </div>
                                  </AccordionTrigger>
                                  <AccordionContent className="px-6 pb-6 pt-2">
-                                    <div className="space-y-2 relative pl-5 ml-5 border-l border-white/10">
+                                    <div className="space-y-2 relative pl-5 ml-5 border-l border-black/10 dark:border-white/10">
                                        {mod.lessons.map((lesson, li) => (
-                                          <Link key={li} to={`/course/${id}/lesson/${i}-${li}`} className="flex items-center justify-between py-2 pl-4 pr-3 rounded-lg hover:bg-white/5 transition-all group/lesson">
+                                          <Link key={li} to={`/course/${id}/lesson/${i}-${li}`} className="flex items-center justify-between py-2 pl-4 pr-3 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all group/lesson">
                                              <div className="flex items-center gap-3">
                                                 {lesson.type === 'video' ? <PlayCircle className="w-4 h-4 text-zinc-500 group-hover/lesson:text-[#F4B942]" /> : 
                                                  lesson.type === 'reading' ? <FileText className="w-4 h-4 text-zinc-500 group-hover/lesson:text-blue-400" /> :
                                                  <HelpCircle className="w-4 h-4 text-zinc-500 group-hover/lesson:text-purple-400" />
                                                 }
-                                                <span className="text-sm text-zinc-300 group-hover/lesson:text-white transition-colors">{lesson.title}</span>
+                                                <span className="text-sm text-zinc-500 group-hover/lesson:text-white transition-colors">{lesson.title}</span>
                                              </div>
-                                             <span className="text-xs text-zinc-600 font-mono">{lesson.duration}</span>
+                                             <span className="text-xs text-zinc-500 dark:text-zinc-600 font-mono">{lesson.duration}</span>
                                           </Link>
                                        ))}
                                     </div>
@@ -431,14 +431,14 @@ const CoursePreview = () => {
                   </div>
 
                   {/* Reviews Section */}
-                  <div className="pt-8 border-t border-white/10">
+                  <div className="pt-8 border-t border-black/10 dark:border-white/10">
                      <div className="flex items-center justify-between mb-8">
-                        <h3 className="font-display text-2xl font-bold text-white flex items-center gap-3">
-                           <Star className="w-6 h-6 text-[#F4B942]" />
+                        <h3 className="font-display text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
+                           <Star className="w-6 h-6 text-emerald-600 dark:text-[#F4B942]" />
                            Student Reviews
                         </h3>
                         {user && !isEditingMode && !showReviewComposer && (
-                           <Button onClick={() => setShowReviewComposer(true)} variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-white/20 hover:text-[#F4B942]">
+                           <Button onClick={() => setShowReviewComposer(true)} variant="outline" className="border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-zinc-900 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 hover:border-black/20 dark:hover:border-white/20 hover:text-emerald-600 dark:hover:text-[#F4B942]">
                               Write a Review
                            </Button>
                         )}
@@ -460,7 +460,7 @@ const CoursePreview = () => {
 
                         {currentUserReviews.length > 0 && !isEditingMode && (
                            <div className="space-y-4 mb-8">
-                              <h4 className="text-sm font-bold text-[#F4B942] uppercase tracking-wider mb-2">Your Review</h4>
+                              <h4 className="text-sm font-bold text-emerald-600 dark:text-[#F4B942] uppercase tracking-wider mb-2">Your Review</h4>
                               {currentUserReviews.map(r => (
                                  <ReviewCard 
                                     key={r.id} {...r} 
@@ -478,8 +478,8 @@ const CoursePreview = () => {
                               <ReviewCard key={r.id} {...r} />
                            ))}
                            {course.reviews.length === 0 && (
-                              <div className="p-8 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center">
-                                 <p className="text-zinc-500">No reviews yet. Be the first to share your thoughts!</p>
+                              <div className="p-8 rounded-2xl bg-black/5 dark:bg-white/5 border border-dashed border-black/10 dark:border-white/10 text-center">
+                                 <p className="text-zinc-500 dark:text-zinc-500">No reviews yet. Be the first to share your thoughts!</p>
                               </div>
                            )}
                         </div>
@@ -490,27 +490,27 @@ const CoursePreview = () => {
                {/* SIDEBAR */}
                <div className="space-y-6">
                   {/* Instructor Bio */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
-                     <h4 className="font-display text-lg font-bold text-white mb-4">Instructor</h4>
+                  <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-black/10 dark:border-white/10 rounded-3xl p-6">
+                     <h4 className="font-display text-lg font-bold text-zinc-900 dark:text-white mb-4">Instructor</h4>
                      <div className="flex items-center gap-4 mb-4">
                         {course.instructorImage ? (
-                           <img src={course.instructorImage} className="w-14 h-14 rounded-full object-cover border border-white/10" alt="" />
+                           <img src={course.instructorImage} className="w-14 h-14 rounded-full object-cover border border-black/10 dark:border-white/10" alt="" />
                         ) : (
                            <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold border border-emerald-500/30">
                               {course.instructor.charAt(0)}
                            </div>
                         )}
                         <div>
-                           <div className="font-semibold text-white">{course.instructor}</div>
-                           <div className="text-xs text-zinc-400">{course.instructorTitle ?? "Heritage Expert"}</div>
+                           <div className="font-semibold text-zinc-900 dark:text-white">{course.instructor}</div>
+                           <div className="text-xs text-zinc-500 dark:text-zinc-400">{course.instructorTitle ?? "Heritage Expert"}</div>
                         </div>
                      </div>
-                     <p className="text-sm text-zinc-400 leading-relaxed">{course.instructorBio}</p>
+                     <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{course.instructorBio}</p>
                   </div>
 
                   {/* Includes */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
-                     <h4 className="font-display text-lg font-bold text-white mb-4">This Course Includes</h4>
+                  <div className="bg-white/50 dark:bg-white/5 backdrop-blur-md border border-black/10 dark:border-white/10 rounded-3xl p-6">
+                     <h4 className="font-display text-lg font-bold text-zinc-900 dark:text-white mb-4">This Course Includes</h4>
                      <ul className="space-y-3">
                         {[
                            { icon: PlayCircle, text: `${course.duration} on-demand video` },
@@ -518,8 +518,8 @@ const CoursePreview = () => {
                            { icon: Award, text: "Certificate of completion" },
                            { icon: Users, text: "Community access" },
                         ].map((item, i) => (
-                           <li key={i} className="flex items-center gap-3 text-sm text-zinc-400">
-                              <item.icon className="w-4 h-4 text-[#F4B942]" />
+                           <li key={i} className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
+                              <item.icon className="w-4 h-4 text-emerald-600 dark:text-[#F4B942]" />
                               <span>{item.text}</span>
                            </li>
                         ))}

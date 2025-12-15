@@ -382,9 +382,9 @@ export default function LessonView() {
 
   if (loading || !courseData || !currentModule || !currentLesson) {
     return (
-      <div className="w-full h-screen bg-zinc-950 flex flex-col items-center justify-center">
-         <div className="w-16 h-16 rounded-full border-2 border-white/10 border-t-[#F4B942] animate-spin mb-6" />
-         <span className="font-display tracking-widest text-sm uppercase text-[#F4B942]">Loading SilayLearn...</span>
+      <div className="w-full h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center">
+         <div className="w-16 h-16 rounded-full border-2 border-black/10 dark:border-white/10 border-t-emerald-500 dark:border-t-[#F4B942] animate-spin mb-6" />
+         <span className="font-display tracking-widest text-sm uppercase text-emerald-600 dark:text-[#F4B942]">Loading SilayLearn...</span>
       </div>
     );
   }
@@ -392,7 +392,7 @@ export default function LessonView() {
   const isCompleted = completed.has(`${moduleIndex}-${lessonIndex}`);
 
   return (
-    <div className="relative h-screen w-full bg-zinc-950 text-white overflow-hidden font-sans selection:bg-[#F4B942]/30 selection:text-[#F4B942]">
+    <div className="relative h-screen w-full bg-slate-50 dark:bg-zinc-950 text-zinc-900 dark:text-white overflow-hidden font-sans selection:bg-[#F4B942]/30 selection:text-[#F4B942]">
       
       {/* 🔮 Background Layer (Matching About.tsx) */}
       <div className="absolute inset-0 z-0">
@@ -411,31 +411,31 @@ export default function LessonView() {
            autoIntensity={1.8}
         />
         {/* Dark overlay for UI readability */}
-        <div className="absolute inset-0 bg-zinc-950/70 pointer-events-none" />
-        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
+        <div className="absolute inset-0 bg-slate-50/70 dark:bg-zinc-950/70 pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.1] dark:opacity-[0.03] bg-[radial-gradient(circle_at_1px_1px,black_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
       </div>
 
       {/* 🧭 Top Navigation Bar (Floating Glass) */}
-      <header className="relative z-30 h-16 px-4 lg:px-6 flex items-center justify-between border-b border-white/5 bg-zinc-950/30 backdrop-blur-xl">
+      <header className="relative z-30 h-16 px-4 lg:px-6 flex items-center justify-between border-b border-black/5 dark:border-white/5 bg-white/70 dark:bg-zinc-950/30 backdrop-blur-xl">
         <div className="flex items-center gap-6">
           <button 
             onClick={() => navigate(`/courses/${id}`)}
-            className="group flex items-center gap-3 text-white/70 hover:text-white transition-all"
+            className="group flex items-center gap-3 text-zinc-600 dark:text-white/70 hover:text-zinc-900 dark:hover:text-white transition-all"
           >
-            <div className="p-2 rounded-full border border-white/10 bg-white/5 group-hover:border-[#F4B942] group-hover:bg-[#F4B942]/10 transition-colors">
+            <div className="p-2 rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 group-hover:border-emerald-500 dark:group-hover:border-[#F4B942] group-hover:bg-emerald-500/10 dark:group-hover:bg-[#F4B942]/10 transition-colors">
                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             </div>
             <div className="hidden sm:block">
-              <span className="block text-[10px] font-bold tracking-widest text-[#F4B942] uppercase opacity-70 group-hover:opacity-100">Return</span>
-              <span className="font-display text-sm tracking-wide">{courseData.title}</span>
+              <span className="block text-[10px] font-bold tracking-widest text-emerald-600 dark:text-[#F4B942] uppercase opacity-70 group-hover:opacity-100">Return</span>
+              <span className="font-display text-sm tracking-wide text-zinc-900 dark:text-white">{courseData.title}</span>
             </div>
           </button>
         </div>
 
         {/* Center: Progress */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 hidden lg:flex items-center gap-3">
-          <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Progress</span>
-          <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden border border-white/5 shadow-inner">
+          <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-wider">Progress</span>
+          <div className="w-48 h-1.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden border border-black/5 dark:border-white/5 shadow-inner">
               <motion.div 
                 className="h-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-[#F4B942]" 
                 initial={{ width: 0 }}
@@ -443,20 +443,20 @@ export default function LessonView() {
                 transition={{ duration: 1.5, ease: "easeOut" }}
               />
           </div>
-          <span className="text-xs font-mono text-white/60">{progress}%</span>
+          <span className="text-xs font-mono text-zinc-500 dark:text-white/60">{progress}%</span>
         </div>
 
         {/* Right: Actions */}
         <div className="flex items-center gap-3">
            <button 
              onClick={() => setSidebarOpen(!sidebarOpen)}
-             className="lg:hidden p-2 text-white/70 hover:text-[#F4B942]"
+             className="lg:hidden p-2 text-zinc-600 dark:text-white/70 hover:text-emerald-600 dark:hover:text-[#F4B942]"
            >
              <Menu className="w-5 h-5" />
            </button>
-           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-              <Clock className="w-3 h-3 text-[#F4B942]" />
-              <span className="text-xs text-white/80">{currentLesson.duration}</span>
+           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
+              <Clock className="w-3 h-3 text-emerald-600 dark:text-[#F4B942]" />
+              <span className="text-xs text-zinc-800 dark:text-white/80">{currentLesson.duration}</span>
            </div>
         </div>
       </header>
@@ -472,20 +472,20 @@ export default function LessonView() {
               animate={{ width: 360, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: -20 }}
               transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-              className="absolute lg:relative z-40 h-full flex-shrink-0 border-r border-white/5 bg-zinc-950/80 backdrop-blur-2xl flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.5)]"
+              className="absolute lg:relative z-40 h-full flex-shrink-0 border-r border-black/5 dark:border-white/5 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.2)] dark:shadow-[10px_0_30px_rgba(0,0,0,0.5)]"
             >
               {/* Sidebar Tabs */}
-              <div className="p-4 flex gap-2 border-b border-white/5">
+              <div className="p-4 flex gap-2 border-b border-black/5 dark:border-white/5">
                 <button
                   onClick={() => setSidebarTab("content")}
                   className={cn(
                     "flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all relative overflow-hidden",
                     sidebarTab === "content" 
-                      ? "text-white bg-white/5 border border-white/10 shadow-lg" 
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                      ? "text-zinc-900 dark:text-white bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 shadow-lg" 
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/5"
                   )}
                 >
-                  {sidebarTab === "content" && <div className="absolute inset-0 bg-gradient-to-tr from-[#F4B942]/10 to-transparent opacity-50" />}
+                  {sidebarTab === "content" && <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 dark:from-[#F4B942]/10 to-transparent opacity-50" />}
                   Lessons
                 </button>
                 <button
@@ -493,8 +493,8 @@ export default function LessonView() {
                   className={cn(
                     "flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 relative overflow-hidden",
                     sidebarTab === "chat" 
-                      ? "text-white bg-white/5 border border-white/10 shadow-lg" 
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                      ? "text-zinc-900 dark:text-white bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 shadow-lg" 
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/5"
                   )}
                 >
                   {sidebarTab === "chat" && <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent opacity-50" />}
@@ -518,8 +518,8 @@ export default function LessonView() {
                         >
                           <AccordionTrigger className="group flex items-center justify-between p-0 hover:no-underline mb-3">
                             <div className="text-left pl-1">
-                               <div className="text-xs font-bold text-[#F4B942] uppercase tracking-wider mb-1 opacity-80">Module {i + 1}</div>
-                               <div className="font-display text-sm text-white group-hover:text-[#F4B942] transition-colors">{m.title}</div>
+                               <div className="text-xs font-bold text-emerald-600 dark:text-[#F4B942] uppercase tracking-wider mb-1 opacity-80">Module {i + 1}</div>
+                               <div className="font-display text-sm text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-[#F4B942] transition-colors">{m.title}</div>
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="pt-0 pb-2">
@@ -540,25 +540,25 @@ export default function LessonView() {
                                        className={cn(
                                           "w-full text-left flex items-center gap-3 p-3 rounded-xl text-xs transition-all duration-300 relative overflow-hidden border",
                                           isActive 
-                                            ? "bg-white/10 border-[#F4B942]/30 shadow-[0_0_15px_rgba(244,185,66,0.1)]"
-                                            : "border-transparent hover:bg-white/5 hover:border-white/5"
+                                            ? "bg-black/10 dark:bg-white/10 border-emerald-500/30 dark:border-[#F4B942]/30 shadow-[0_0_15px_rgba(16,185,129,0.1)] dark:shadow-[0_0_15px_rgba(244,185,66,0.1)]"
+                                            : "border-transparent hover:bg-black/5 dark:hover:bg-white/5 hover:border-black/5 dark:hover:border-white/5"
                                        )}
                                      >
-                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F4B942]" />}
+                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 dark:bg-[#F4B942]" />}
                                         
                                         <div className={cn(
                                             "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border transition-colors",
                                             isActive 
-                                              ? "border-[#F4B942] bg-[#F4B942]/20 text-[#F4B942]" 
+                                              ? "border-emerald-500 dark:border-[#F4B942] bg-emerald-500/20 dark:bg-[#F4B942]/20 text-emerald-500 dark:text-[#F4B942]" 
                                               : isDone 
                                                 ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-500" 
-                                                : "border-white/10 text-zinc-500"
+                                                : "border-black/10 dark:border-white/10 text-zinc-500"
                                         )}>
                                            {isDone ? <CheckCircle className="w-3 h-3" /> : (l.type === "video" ? <Play className="w-2.5 h-2.5 ml-0.5" /> : <FileText className="w-2.5 h-2.5" />)}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                           <div className={cn("font-medium truncate", isActive ? "text-white" : "text-zinc-400 group-hover:text-zinc-200")}>{l.title}</div>
-                                           <div className="text-[10px] text-zinc-600">{l.duration}</div>
+                                           <div className={cn("font-medium truncate", isActive ? "text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-zinc-200")}>{l.title}</div>
+                                           <div className="text-[10px] text-zinc-500 dark:text-zinc-600">{l.duration}</div>
                                         </div>
                                      </button>
                                    )
@@ -577,15 +577,15 @@ export default function LessonView() {
                      <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto mb-4 pr-1 scroll-smooth">
                         {/* Intro */}
                         <div className="flex flex-col items-center justify-center py-8 text-center space-y-3 opacity-60">
-                           {/* AI Coach Avatar (Intro) - FIX APPLIED */}
-                           <div className="w-12 h-12 rounded-full border border-white/20 shadow-lg relative overflow-hidden">
+                           
+                           <div className="w-12 h-12 rounded-full border border-black/10 dark:border-white/20 shadow-lg relative overflow-hidden">
                               <img 
                                  src="/ai_coach_avatar.jpg" 
                                  alt="AI Coach Roxy" 
                                  className="absolute inset-0 w-full h-full object-cover" 
                               />
                            </div>
-                           <p className="text-xs text-zinc-400 max-w-[200px]">
+                           <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[200px]">
                              I'm Roxy, your heritage guide. Ask me about the culture behind this lesson.
                            </p>
                         </div>
@@ -604,8 +604,8 @@ export default function LessonView() {
                                className={cn("flex gap-3", msg.sender === "user" ? "flex-row-reverse" : "")}
                              >
                                 {msg.sender === "assistant" ? (
-                                   // AI Coach Avatar (Message) - FIX APPLIED
-                                   <div className="w-8 h-8 rounded-full border border-white/20 shadow-lg flex-shrink-0 mt-1 relative overflow-hidden">
+                                   
+                                   <div className="w-8 h-8 rounded-full border border-black/10 dark:border-white/20 shadow-lg flex-shrink-0 mt-1 relative overflow-hidden">
                                       <img 
                                          src="/ai_coach_avatar.jpg" 
                                          alt="AI Coach Roxy" 
@@ -615,7 +615,7 @@ export default function LessonView() {
                                 ) : (
                                    // User Avatar Logic (Fixed with robust cropping structure)
                                    <div className={cn(
-                                      "w-8 h-8 rounded-full border border-white/20 shadow-lg flex-shrink-0 mt-1 overflow-hidden",
+                                      "w-8 h-8 rounded-full border border-black/10 dark:border-white/20 shadow-lg flex-shrink-0 mt-1 overflow-hidden",
                                       // If userAvatar (URL) exists, use relative/absolute for cropping, otherwise use flex for icon centering
                                       userAvatar ? "relative" : "flex items-center justify-center",
                                       CurrentUserBg
@@ -633,8 +633,8 @@ export default function LessonView() {
                                 <div className={cn(
                                    "p-3.5 rounded-2xl text-xs leading-relaxed shadow-lg max-w-[85%]",
                                    msg.sender === "user" 
-                                      ? "bg-[#F4B942] text-zinc-900 font-medium rounded-tr-sm"
-                                      : "bg-white/10 backdrop-blur-xl border border-white/10 text-zinc-100 rounded-tl-sm"
+                                      ? "bg-emerald-500 dark:bg-[#F4B942] text-white dark:text-zinc-900 font-medium rounded-tr-sm"
+                                      : "bg-black/5 dark:bg-white/10 backdrop-blur-xl border border-black/10 dark:border-white/10 text-zinc-800 dark:text-zinc-100 rounded-tl-sm"
                                 )}>
                                    {msg.text}
                                 </div>
@@ -644,15 +644,15 @@ export default function LessonView() {
                         
                         {isTyping && (
                            <div className="flex gap-3">
-                              {/* AI Coach Typing Indicator Avatar - FIX APPLIED */}
-                              <div className="w-8 h-8 rounded-full border border-white/20 shadow-lg flex-shrink-0 relative overflow-hidden">
+                              
+                              <div className="w-8 h-8 rounded-full border border-black/10 dark:border-white/20 shadow-lg flex-shrink-0 relative overflow-hidden">
                                  <img 
                                     src="/ai_coach_avatar.jpg" 
                                     alt="AI Coach Roxy" 
                                     className="absolute inset-0 w-full h-full object-cover" 
                                  />
                               </div>
-                              <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/5 backdrop-blur-md border border-white/5 flex items-center gap-1">
+                              <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-black/5 dark:bg-white/5 backdrop-blur-md border border-black/5 dark:border-white/5 flex items-center gap-1">
                                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" />
                                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce delay-75" />
                                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce delay-150" />
@@ -662,7 +662,7 @@ export default function LessonView() {
                      </div>
 
                      {/* Input Area */}
-                     <div className="relative pt-2 border-t border-white/5">
+                     <div className="relative pt-2 border-t border-black/5 dark:border-white/5">
                         <input
                            ref={chatInputRef}
                            type="text"
@@ -671,12 +671,12 @@ export default function LessonView() {
                            onKeyDown={(e) => e.key === "Enter" && sendChat()}
                            disabled={isSendingRef.current || !currentUserId}
                            placeholder="Ask a question..."
-                           className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#F4B942]/50 focus:bg-white/10 transition-all shadow-inner"
+                           className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 dark:focus:border-[#F4B942]/50 focus:bg-black/5 dark:focus:bg-white/10 transition-all shadow-inner"
                         />
                         <button 
                            onClick={sendChat}
                            disabled={!chatInput.trim()}
-                           className="absolute right-2 top-1/2 -translate-y-1/2 mt-1 p-1.5 bg-[#F4B942] rounded-lg text-black hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-lg shadow-orange-500/20"
+                           className="absolute right-2 top-1/2 -translate-y-1/2 mt-1 p-1.5 bg-emerald-500 dark:bg-[#F4B942] rounded-lg text-white dark:text-black hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all shadow-lg shadow-emerald-500/20 dark:shadow-orange-500/20"
                         >
                            <Send className="w-4 h-4" />
                         </button>
@@ -700,7 +700,7 @@ export default function LessonView() {
                  animate={{ opacity: 1, x: 0 }}
                  exit={{ opacity: 0, x: -20 }}
                  onClick={() => setSidebarOpen(true)}
-                 className="fixed bottom-6 left-6 z-50 p-3.5 bg-zinc-950/90 backdrop-blur-xl border border-white/10 text-white rounded-full hover:border-[#F4B942] hover:text-[#F4B942] transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
+                 className="fixed bottom-6 left-6 z-50 p-3.5 bg-white/80 dark:bg-zinc-950/90 backdrop-blur-xl border border-black/10 dark:border-white/10 text-zinc-800 dark:text-white rounded-full hover:border-emerald-500 dark:hover:border-[#F4B942] hover:text-emerald-600 dark:hover:text-[#F4B942] transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.2)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
                >
                  <Menu className="w-5 h-5 group-hover:scale-110 transition-transform" />
                </motion.button>
@@ -710,12 +710,12 @@ export default function LessonView() {
            <div className="w-full max-w-6xl mx-auto p-4 lg:p-8 flex flex-col gap-8">
               
               {/* Premium Video Player Container */}
-              <div className="relative group rounded-3xl overflow-hidden bg-black shadow-[0_30px_80px_rgba(0,0,0,0.6)] border border-white/10 ring-1 ring-white/5 transition-transform duration-500">
+              <div className="relative group rounded-3xl overflow-hidden bg-zinc-900 shadow-2xl dark:shadow-[0_30px_80px_rgba(0,0,0,0.6)] border border-black/10 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 transition-transform duration-500">
                  
                  {/* Video Area */}
                  <div className="aspect-video bg-zinc-900 relative flex items-center justify-center overflow-hidden">
                     {/* Background glow behind video */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/20 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/10 dark:from-emerald-900/20 to-transparent pointer-events-none" />
                     
                     {currentLesson.type === "video" && currentLesson.videoUrl ? (
                       <video
@@ -730,7 +730,7 @@ export default function LessonView() {
                       </video>
                     ) : (
                       <div className="flex flex-col items-center gap-4 text-zinc-500 z-10">
-                         <div className="w-20 h-20 rounded-full bg-white/5 border border-white/5 flex items-center justify-center shadow-2xl">
+                         <div className="w-20 h-20 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-center shadow-2xl">
                             <Lock className="w-8 h-8 text-zinc-600" />
                          </div>
                          <p className="font-display tracking-wide">Content Locked</p>
@@ -739,18 +739,18 @@ export default function LessonView() {
                  </div>
 
                  {/* Controls Bar (Glass Overlay) */}
-                 <div className="relative bg-zinc-950/90 border-t border-white/10 p-5 lg:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 backdrop-blur-md">
+                 <div className="relative bg-white/80 dark:bg-zinc-950/90 border-t border-black/10 dark:border-white/10 p-5 lg:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 backdrop-blur-md">
                     <div>
                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-bold text-[#F4B942] uppercase tracking-wider px-2 py-0.5 rounded bg-[#F4B942]/10 border border-[#F4B942]/20">
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-[#F4B942] uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 dark:bg-[#F4B942]/10 border border-emerald-500/20 dark:border-[#F4B942]/20">
                             Lesson {lessonIndex + 1}
                           </span>
                        </div>
-                       <h2 className="text-xl sm:text-2xl font-display font-bold text-white tracking-wide">{currentLesson.title}</h2>
+                       <h2 className="text-xl sm:text-2xl font-display font-bold text-zinc-900 dark:text-white tracking-wide">{currentLesson.title}</h2>
                     </div>
 
                     <div className="flex items-center gap-3 w-full sm:w-auto">
-                       <button onClick={prev} className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 transition-all active:scale-95">
+                       <button onClick={prev} className="p-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-800 dark:text-white border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 transition-all active:scale-95">
                           <ChevronLeft className="w-5 h-5" />
                        </button>
 
@@ -759,15 +759,15 @@ export default function LessonView() {
                           className={cn(
                              "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold uppercase text-xs tracking-wider transition-all shadow-lg active:scale-95",
                              isCompleted
-                               ? "bg-emerald-500 text-emerald-950 shadow-emerald-500/20 hover:bg-emerald-400 border border-emerald-400"
-                               : "bg-white text-zinc-900 hover:bg-zinc-200 border border-white"
+                               ? "bg-emerald-500 text-white dark:text-emerald-950 shadow-emerald-500/20 hover:bg-emerald-600 dark:hover:bg-emerald-400 border border-emerald-600 dark:border-emerald-400"
+                               : "bg-zinc-800 text-white hover:bg-zinc-900 border border-zinc-900 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 dark:border-white"
                           )}
                        >
-                          {isCompleted ? <CheckCircle className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border-2 border-zinc-900/30" />}
+                          {isCompleted ? <CheckCircle className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border-2 border-white/50 dark:border-zinc-900/30" />}
                           <span>{isCompleted ? "Completed" : "Mark Done"}</span>
                        </button>
 
-                       <button onClick={next} className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 transition-all active:scale-95">
+                       <button onClick={next} className="p-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-zinc-800 dark:text-white border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 transition-all active:scale-95">
                           <ChevronRight className="w-5 h-5" />
                        </button>
                     </div>
@@ -777,33 +777,33 @@ export default function LessonView() {
               {/* Bottom Info Grid */}
               <div className="grid lg:grid-cols-3 gap-6">
                  {/* Notes Card */}
-                 <div className="lg:col-span-2 relative p-8 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl overflow-hidden group">
+                 <div className="lg:col-span-2 relative p-8 rounded-3xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-xl overflow-hidden group">
                     {/* Decorative shimmer */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/5 dark:from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                     
-                    <h3 className="text-lg font-display font-semibold text-white mb-4 flex items-center gap-2">
-                       <div className="p-1.5 rounded-lg bg-[#F4B942]/10 border border-[#F4B942]/20">
-                          <FileText className="w-4 h-4 text-[#F4B942]" />
+                    <h3 className="text-lg font-display font-semibold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
+                       <div className="p-1.5 rounded-lg bg-emerald-500/10 dark:bg-[#F4B942]/10 border border-emerald-500/20 dark:border-[#F4B942]/20">
+                          <FileText className="w-4 h-4 text-emerald-600 dark:text-[#F4B942]" />
                        </div>
                        Lesson Notes
                     </h3>
-                    <p className="text-zinc-400 leading-relaxed font-light">
-                       In this lesson, we explore the cultural significance of <span className="text-white font-medium">{currentLesson.title}</span>. 
-                       Understanding the roots of this topic is essential for mastering the broader module of <span className="text-emerald-400">{currentModule.title}</span>. 
+                    <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed font-light">
+                       In this lesson, we explore the cultural significance of <span className="text-zinc-800 dark:text-white font-medium">{currentLesson.title}</span>. 
+                       Understanding the roots of this topic is essential for mastering the broader module of <span className="text-emerald-600 dark:text-emerald-400">{currentModule.title}</span>. 
                        Take your time to absorb the visual details presented in the video.
                     </p>
 
-                    <div className="mt-6 pt-6 border-t border-white/5 flex gap-8">
+                    <div className="mt-6 pt-6 border-t border-black/5 dark:border-white/5 flex gap-8">
                        <div>
-                          <span className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Duration</span>
-                          <span className="text-sm font-medium text-white flex items-center gap-1.5">
+                          <span className="block text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-500 mb-1">Duration</span>
+                          <span className="text-sm font-medium text-zinc-800 dark:text-white flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5 text-zinc-500" />
                             {currentLesson.duration}
                           </span>
                        </div>
                        <div>
-                          <span className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Format</span>
-                          <span className="text-sm font-medium text-white capitalize flex items-center gap-1.5">
+                          <span className="block text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-500 mb-1">Format</span>
+                          <span className="text-sm font-medium text-zinc-800 dark:text-white capitalize flex items-center gap-1.5">
                             <Play className="w-3.5 h-3.5 text-zinc-500" />
                             {currentLesson.type}
                           </span>
@@ -814,20 +814,20 @@ export default function LessonView() {
                  {/* Up Next Card */}
                  <div 
                     onClick={next}
-                    className="relative p-8 rounded-3xl bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl border border-white/10 shadow-xl flex flex-col cursor-pointer group hover:border-[#F4B942]/30 transition-all duration-300 hover:-translate-y-1"
+                    className="relative p-8 rounded-3xl bg-gradient-to-b from-black/5 to-black/[.02] dark:from-white/10 dark:to-white/5 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-xl flex flex-col cursor-pointer group hover:border-emerald-500/30 dark:hover:border-[#F4B942]/30 transition-all duration-300 hover:-translate-y-1"
                  >
                     <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ArrowLeft className="w-5 h-5 text-[#F4B942] rotate-180" />
+                      <ArrowLeft className="w-5 h-5 text-emerald-500 dark:text-[#F4B942] rotate-180" />
                     </div>
 
-                    <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">Up Next</h3>
+                    <h3 className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-widest mb-4">Up Next</h3>
                     
                     {courseData.modules[moduleIndex].lessons[lessonIndex + 1] ? (
                        <div className="mt-auto">
-                          <div className="text-xl font-display font-bold text-white group-hover:text-[#F4B942] transition-colors leading-tight mb-2">
+                          <div className="text-xl font-display font-bold text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-[#F4B942] transition-colors leading-tight mb-2">
                              {courseData.modules[moduleIndex].lessons[lessonIndex + 1].title}
                           </div>
-                          <div className="text-sm text-zinc-400 flex items-center gap-2">
+                          <div className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
                              <span>Start next lesson</span>
                           </div>
                        </div>

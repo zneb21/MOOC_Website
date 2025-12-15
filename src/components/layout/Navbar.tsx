@@ -212,7 +212,7 @@ const Navbar = () => {
 
               <div className="hidden sm:block">
                 <span className="font-display text-2xl font-extrabold tracking-tight text-white/95 group-hover:text-white transition-colors">
-                  Silay<span className="text-primary">Learn</span>
+                  Silay<span className="text-gradient">Learn</span>
                 </span>
               </div>
             </Link>

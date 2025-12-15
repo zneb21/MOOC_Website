@@ -28,8 +28,8 @@ const HeroSection = () => {
       {/* background layer (parallax target) */}
       <div ref={bgRef} className="absolute inset-0 z-0 will-change-transform">
         <img src={heroImage} alt="Iloilo" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/70 to-emerald-950/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/50 to-white/20 dark:from-emerald-950/95 dark:via-emerald-950/70 dark:to-emerald-950/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent dark:from-black/40 dark:via-black/10 dark:to-transparent" />
       </div>
 
       {/* extra blobs */}
@@ -42,20 +42,20 @@ const HeroSection = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 bg-white/10 backdrop-blur-xl border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.20)]">
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 bg-black/5 dark:bg-black/20 backdrop-blur-xl border border-black/10 dark:border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.20)]">
             <Sparkles className="w-4 h-4 text-[#F4B942]" />
-            <span className="text-white/90 text-sm font-semibold tracking-wide">
+            <span className="text-slate-800/90 dark:text-white/90 text-sm font-semibold tracking-wide">
               Learn Filipino Culture & Skills
             </span>
           </div>
 
           {/* hero glass card */}
-          <div className="rounded-3xl p-7 sm:p-9 bg-white/8 dark:bg-white/7 backdrop-blur-2xl border border-white/12 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-5">
-              Discover the Heart of <span className="text-[#F4B942]">Ilonggo</span> Heritage
+          <div className="rounded-3xl p-7 sm:p-9 bg-white/50 dark:bg-black/25 backdrop-blur-2xl border border-white/20 dark:border-white/12 shadow-[0_24px_80px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 dark:text-white leading-tight mb-5">
+              Discover the Heart of <span className="text-gradient">Ilonggo</span> Heritage
             </h1>
 
-            <p className="text-white/80 text-lg sm:text-xl leading-relaxed mb-8">
+            <p className="text-slate-800/80 dark:text-white/80 text-lg sm:text-xl leading-relaxed mb-8">
               Immerse yourself in localized learning centered on Philippine culture, Iloilo tourism,
               traditional crafts, and authentic Filipino cuisine.
             </p>
@@ -80,11 +80,10 @@ const HeroSection = () => {
                 variant="outline"
                 asChild
                 className="
-                  group relative overflow-hidden
-                  bg-white/10 text-white
-                  border border-white/25
-                  hover:bg-white/15 hover:border-white/40
-                  shadow-[0_12px_32px_rgba(0,0,0,0.25)]
+                  group relative overflow-hidden bg-black/5 text-slate-800 border-slate-500/30 hover:bg-black/10 hover:border-slate-500/50
+                  dark:bg-white/10 dark:text-white dark:border-white/25
+                  dark:hover:bg-white/15 dark:hover:border-white/40
+                  shadow-[0_12px_32px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.25)]
                   backdrop-blur-md
                 "
               >
@@ -97,8 +96,8 @@ const HeroSection = () => {
                     <span
                       className="
                         pointer-events-none absolute left-0 -bottom-1 h-[2px] w-full
-                        origin-left scale-x-0
-                        bg-white/80
+                        origin-left scale-x-0 bg-slate-800/80
+                        dark:bg-white/80
                         transition-transform duration-300
                         group-hover:scale-x-100
                       "
@@ -110,8 +109,8 @@ const HeroSection = () => {
                     className="
                       pointer-events-none absolute bottom-0 left-0 h-[2px] w-full
                       opacity-0 transition-opacity duration-300
-                      group-hover:opacity-100
-                      bg-gradient-to-r from-transparent via-white/55 to-transparent
+                      group-hover:opacity-100 bg-gradient-to-r from-transparent via-slate-500/55 to-transparent
+                      dark:via-white/55
                     "
                   />
                 </Link>
@@ -120,21 +119,21 @@ const HeroSection = () => {
 
             </div>
 
-            <div className="grid grid-cols-3 gap-6 mt-10 pt-6 border-t border-white/15">
+            <div className="grid grid-cols-3 gap-6 mt-10 pt-6 border-t border-black/10 dark:border-white/15">
               {[
                 { value: "50+", label: "Local Courses" },
                 { value: "2,000+", label: "Learners" },
                 { value: "20+", label: "Expert Instructors" },
               ].map((s) => (
                 <div key={s.label}>
-                  <div className="font-display text-2xl sm:text-3xl font-bold text-[#F4B942]">{s.value}</div>
-                  <div className="text-white/65 text-sm">{s.label}</div>
+                  <div className="font-display text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-[#F4B942]">{s.value}</div>
+                  <div className="text-slate-700/80 dark:text-white/65 text-sm">{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          <p className="mt-6 text-white/55 text-sm">
+          <p className="mt-6 text-slate-600/80 dark:text-white/55 text-sm">
             Learn at your pace • Culture-first • Beginner friendly
           </p>
         </div>

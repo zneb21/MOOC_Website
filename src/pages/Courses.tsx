@@ -114,7 +114,7 @@ const Courses = () => {
   });
 
   return (
-    <div className="relative min-h-screen bg-muted">
+    <div className="relative min-h-screen bg-slate-50 dark:bg-zinc-950">
        {/* Background Layer */}
        <div
          style={{
@@ -148,34 +148,35 @@ const Courses = () => {
       <Navbar />
 
       <main className="pt-16 lg:pt-20">
-        {/* About-style header */}
-        <section className="relative overflow-hidden py-14 lg:py-20 bg-emerald-950/90">
-          <div className="absolute inset-0 bg-gradient-to-br from-black/55 via-emerald-950/70 to-black/55" />
-          <div className="absolute -top-24 left-10 w-80 h-80 bg-[#F4B942]/12 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-8 w-72 h-72 bg-teal-400/12 rounded-full blur-3xl" />
-          <div className="absolute inset-0 opacity-[0.07] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/30 pointer-events-none" />
-
+        {/* Header */}
+        <section className="relative overflow-hidden py-14 lg:py-20 bg-slate-100 dark:bg-emerald-950/90">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-white dark:from-black/55 dark:via-emerald-950/70 dark:to-black/55" />
+          <div className="absolute -top-24 left-10 w-80 h-80 bg-[#F4B942]/20 dark:bg-[#F4B942]/12 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-8 w-72 h-72 bg-teal-400/20 dark:bg-teal-400/12 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-950 via-emerald-900/80 to-background" />
+          <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-100/50 via-transparent to-transparent dark:from-black/45 dark:via-transparent dark:to-black/30 pointer-events-none" />
+         
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-2xl">
-              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 animate-fade-up">
-                Explore <span className="text-[#F4B942]">Courses</span>
+              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-4 animate-fade-up">
+                Explore <span className="text-gradient">Courses</span>
               </h1>
-              <p className="text-white/70 text-lg animate-fade-up delay-100">
+              <p className="text-slate-700/80 dark:text-white/70 text-lg animate-fade-up delay-100">
                 Discover courses celebrating Philippine culture, local skills, and Ilonggo heritage
               </p>
             </div>
           </div>
         </section>
 
-        {/* Search & Filters (glass bar like About) */}
-        <section className="py-6 border-b border-white/10 bg-emerald-950/70 sticky top-16 lg:top-20 z-30 backdrop-blur-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-emerald-950/25 to-black/25" />
+        {/* Search & Filters */}
+        <section className="py-6 border-b border-black/10 dark:border-white/10 bg-white/70 dark:bg-emerald-950/70 sticky top-16 lg:top-20 z-30 backdrop-blur-xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/25 via-slate-50/25 to-white/25 dark:from-black/25 dark:via-emerald-950/25 dark:to-black/25" />
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Search */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-white/60" />
                 <Input
                   type="text"
                   placeholder="Search courses or instructors..."
@@ -183,8 +184,8 @@ const Courses = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="
                     pl-10 h-12
-                    bg-white/5 border-white/15 text-white placeholder:text-white/50
-                    focus-visible:ring-emerald-300/40
+                    bg-black/5 dark:bg-white/5 border-black/15 dark:border-white/15 text-slate-900 dark:text-white placeholder:text-slate-500/80 dark:placeholder:text-white/50
+                    focus-visible:ring-emerald-500/40 dark:focus-visible:ring-emerald-300/40
                   "
                 />
                 {searchQuery && (
@@ -192,7 +193,7 @@ const Courses = () => {
                     onClick={() => setSearchQuery("")}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
                   >
-                    <X className="w-4 h-4 text-white/60 hover:text-white" />
+                    <X className="w-4 h-4 text-slate-500/60 hover:text-slate-800 dark:text-white/60 dark:hover:text-white" />
                   </button>
                 )}
               </div>
@@ -200,7 +201,7 @@ const Courses = () => {
               {/* Mobile Filter Toggle */}
               <Button
                 variant="outline"
-                className="sm:hidden bg-white/5 hover:bg-white/10 border-white/15 text-white"
+                className="sm:hidden bg-black/5 hover:bg-black/10 border-black/15 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/15 dark:text-white"
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="w-4 h-4 mr-2" />
@@ -218,7 +219,7 @@ const Courses = () => {
                     className={
                       selectedCategory === category
                         ? ""
-                        : "bg-white/5 hover:bg-white/10 border-white/15 text-white"
+                        : "bg-black/5 hover:bg-black/10 border-black/15 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/15 dark:text-white"
                     }
                   >
                     {category}
@@ -242,7 +243,7 @@ const Courses = () => {
                     className={
                       selectedCategory === category
                         ? ""
-                        : "bg-white/5 hover:bg-white/10 border-white/15 text-white"
+                        : "bg-black/5 hover:bg-black/10 border-black/15 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/15 dark:text-white"
                     }
                   >
                     {category}
@@ -254,20 +255,20 @@ const Courses = () => {
         </section>
 
         {/* Courses Grid */}
-        <section className="relative py-12 lg:py-16 bg-emerald-950/90 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-emerald-950/70 to-black/45" />
-          <div className="absolute top-1/3 left-10 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#F4B942]/10 rounded-full blur-3xl" />
-          <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:26px_26px]" />
+        <section className="relative py-12 lg:py-16 bg-slate-100 dark:bg-emerald-950/90 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-white dark:from-black/40 dark:via-emerald-950/70 dark:to-black/45" />
+          <div className="absolute top-1/3 left-10 w-72 h-72 bg-emerald-400/15 dark:bg-emerald-400/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#F4B942]/15 dark:bg-[#F4B942]/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 opacity-[0.1] dark:opacity-[0.06] bg-[radial-gradient(circle_at_1px_1px,black_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:26px_26px]" />
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             {/* Results / loading / error */}
             {loading ? (
-              <p className="text-white/70 mb-6">Loading courses...</p>
+              <p className="text-slate-600 dark:text-white/70 mb-6">Loading courses...</p>
             ) : error ? (
               <p className="text-red-300 mb-6">Error: {error}</p>
             ) : (
-              <p className="text-white/70 mb-6">
+              <p className="text-slate-600 dark:text-white/70 mb-6">
                 Showing {filteredCourses.length} course
                 {filteredCourses.length !== 1 ? "s" : ""}
                 {selectedCategory !== "All" && ` in ${selectedCategory}`}
@@ -283,13 +284,12 @@ const Courses = () => {
                         key={course.id}
                         to={`/courses/${course.id}`}
                         className="
-                          group relative rounded-3xl overflow-hidden
-                          bg-black/20 backdrop-blur-2xl
-                          border border-white/10
-                          shadow-[0_22px_70px_rgba(0,0,0,0.45)]
+                          group relative rounded-3xl overflow-hidden bg-white/60 dark:bg-black/20
+                          backdrop-blur-2xl border border-white/20 dark:border-white/10
+                          shadow-xl dark:shadow-[0_22px_70px_rgba(0,0,0,0.45)]
                           transition-all duration-500
-                          hover:-translate-y-1 hover:shadow-[0_34px_110px_rgba(0,0,0,0.65)]
-                          hover:ring-1 hover:ring-emerald-300/30
+                          hover:-translate-y-1 hover:shadow-2xl dark:hover:shadow-[0_34px_110px_rgba(0,0,0,0.65)]
+                          hover:ring-1 hover:ring-emerald-500/30 dark:hover:ring-emerald-300/30
                           animate-fade-up
                         "
                         style={{ animationDelay: `${index * 50}ms` }}
@@ -308,7 +308,7 @@ const Courses = () => {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
                           <div className="absolute top-3 left-3">
-                            <span className="bg-black/35 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
+                            <span className="bg-black/40 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md border border-white/15">
                               {course.category}
                             </span>
                           </div>
@@ -316,40 +316,40 @@ const Courses = () => {
 
                         {/* Content */}
                         <div className="p-5 relative">
-                          <h3 className="font-display text-lg font-semibold text-white mb-2 line-clamp-2 group-hover:text-[#F4B942] transition-colors">
+                          <h3 className="font-display text-lg font-semibold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-[#F4B942] transition-colors">
                             {course.title}
                           </h3>
-                          <p className="text-white/65 text-sm mb-1">
-                            by <span className="text-white/80">{course.instructor}</span>
+                          <p className="text-slate-700/80 dark:text-white/65 text-sm mb-1">
+                            by <span className="text-slate-800 dark:text-white/80">{course.instructor}</span>
                           </p>
-                          <p className="text-white/60 text-sm mb-3 line-clamp-2">
+                          <p className="text-slate-600/90 dark:text-white/60 text-sm mb-3 line-clamp-2">
                             {course.description}
                           </p>
 
                           {/* Stats */}
-                          <div className="flex items-center gap-4 text-sm text-white/65 mb-4">
+                          <div className="flex items-center gap-4 text-sm text-slate-700/80 dark:text-white/65 mb-4">
                             <div className="flex items-center gap-1">
                               <Star className="w-4 h-4 text-[#F4B942] fill-[#F4B942]" />
-                              <span className="font-medium text-white">
+                              <span className="font-medium text-slate-800 dark:text-white">
                                 {course.rating.toFixed(1)}
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <Users className="w-4 h-4" />
-                              <span>{course.students.toLocaleString()}</span>
+                              <span className="text-slate-800 dark:text-white">{course.students.toLocaleString()}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
-                              <span>{course.duration}</span>
+                              <span className="text-slate-800 dark:text-white">{course.duration}</span>
                             </div>
                           </div>
 
                           {/* Price */}
-                          <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                            <span className="font-display text-xl font-bold text-emerald-300">
+                          <div className="flex items-center justify-between pt-4 border-t border-black/10 dark:border-white/10">
+                            <span className="font-display text-xl font-bold text-emerald-600 dark:text-emerald-300">
                               {course.price}
                             </span>
-                            <span className="text-sm font-semibold text-[#F4B942]/90 group-hover:text-[#F4B942] transition-colors">
+                            <span className="text-sm font-semibold text-emerald-600/90 dark:text-[#F4B942]/90 group-hover:text-emerald-600 dark:group-hover:text-[#F4B942] transition-colors">
                               View →
                             </span>
                           </div>
@@ -359,7 +359,7 @@ const Courses = () => {
                   </div>
                 ) : (
                   <div className="text-center py-16">
-                    <p className="text-white/70 text-lg mb-4">
+                    <p className="text-slate-600 dark:text-white/70 text-lg mb-4">
                       No courses found matching your criteria.
                     </p>
                     <Button
@@ -368,7 +368,7 @@ const Courses = () => {
                         setSearchQuery("");
                         setSelectedCategory("All");
                       }}
-                      className="bg-white/5 hover:bg-white/10 border-white/15 text-white"
+                      className="bg-black/5 hover:bg-black/10 border-black/15 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/15 dark:text-white"
                     >
                       Clear Filters
                     </Button>

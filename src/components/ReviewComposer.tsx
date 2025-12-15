@@ -45,17 +45,17 @@ const ReviewComposer = ({
   };
 
   return (
-    <div className="bg-zinc-900/60 backdrop-blur-xl border border-[#F4B942]/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+    <div className="bg-white/70 dark:bg-zinc-900/60 backdrop-blur-xl border border-black/10 dark:border-[#F4B942]/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
       {/* Decorative gradient blob */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F4B942]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 dark:bg-[#F4B942]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2" />
 
       <div className="flex items-center justify-between mb-6 relative z-10">
-        <h3 className="font-display font-bold text-white text-lg">
+        <h3 className="font-display font-bold text-zinc-900 dark:text-white text-lg">
           {initialReview ? "Edit Your Review" : "Share Your Experience"}
         </h3>
         <button
           onClick={onCancel}
-          className="p-1 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+          className="p-1 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all"
         >
           <X className="w-5 h-5" />
         </button>
@@ -64,7 +64,7 @@ const ReviewComposer = ({
       <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
         {/* Star Rating */}
         <div>
-          <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">
+          <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider mb-2 block">
             How would you rate this course?
           </label>
           <div className="flex gap-1.5">
@@ -81,14 +81,14 @@ const ReviewComposer = ({
                   className={cn(
                     "w-8 h-8 transition-colors duration-200",
                     star <= (hoverRating || rating)
-                      ? "text-[#F4B942] fill-[#F4B942]"
-                      : "text-zinc-700 fill-zinc-800/30"
+                      ? "text-[#F4B942] fill-current"
+                      : "text-zinc-300 dark:text-zinc-700 fill-zinc-400/50 dark:fill-zinc-800/30"
                   )}
                 />
               </button>
             ))}
           </div>
-          <p className="text-xs text-[#F4B942] mt-2 font-medium h-4">
+          <p className="text-xs text-emerald-600 dark:text-[#F4B942] mt-2 font-medium h-4">
              {(hoverRating || rating) === 5 ? "Excellent!" : 
               (hoverRating || rating) === 4 ? "Very Good" :
               (hoverRating || rating) === 3 ? "Good" :
@@ -98,18 +98,18 @@ const ReviewComposer = ({
 
         {/* Comment Textarea */}
         <div>
-          <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">
+          <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider mb-2 block">
             Your Review
           </label>
           <Textarea
             placeholder="What did you learn? How was the instructor?"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            className="min-h-[120px] resize-none bg-black/20 border-white/10 text-white placeholder:text-zinc-600 focus:border-[#F4B942]/50 focus:ring-0 rounded-xl"
+            className="min-h-[120px] resize-none bg-black/5 dark:bg-black/20 border-black/10 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:border-emerald-500/50 dark:focus:border-[#F4B942]/50 focus:ring-0 rounded-xl"
             maxLength={500}
           />
           <div className="flex justify-end mt-1">
-             <p className="text-[10px] text-zinc-500">
+             <p className="text-[10px] text-zinc-500 dark:text-zinc-500">
                {comment.length}/500
              </p>
           </div>
@@ -122,7 +122,7 @@ const ReviewComposer = ({
             variant="ghost"
             onClick={onCancel}
             disabled={isLoading}
-            className="text-zinc-400 hover:text-white hover:bg-white/5"
+            className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
           >
             Cancel
           </Button>

@@ -610,7 +610,7 @@ const About = () => {
               >
                 <div className="max-w-4xl mx-auto text-center p-8 sm:p-10">
                   <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
-                    Our Advocacy
+                    Our <span className="text-gradient">Advocacy</span>
                   </h2>
 
                   <p className="text-white/80 text-lg leading-relaxed mb-8">
@@ -621,8 +621,8 @@ const About = () => {
                   </p>
 
                   <div className="inline-flex items-center gap-2 text-[#F4B942]">
-                    <Heart className="w-5 h-5 fill-[#F4B942]" />
-                    <span className="font-medium">Made with love in Iloilo, Philippines</span>
+                    <Heart className="w-5 h-5 fill-[#F4B942] color-gradient" />
+                    <span className="text-gradient">Made with love in Iloilo, Philippines</span>
                   </div>
                 </div>
               </PremiumTiltCard>
