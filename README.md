@@ -1,16 +1,16 @@
 # 🌾 SilayLearn – Iloilo Culture MOOC Platform
 
-SilayLearn is a **Massive Open Online Course (MOOC) web platform** dedicated to promoting and preserving the rich **culture, heritage, and identity of Iloilo**. It provides an engaging and beginner-friendly learning experience through interactive lessons, a modern interface, and an AI-powered learning assistant.
+SilayLearn is a **Massive Open Online Course (MOOC) web platform** dedicated to promoting and preserving the rich **culture, heritage, and identity of Iloilo**. It delivers an engaging, beginner‑friendly learning experience through interactive lessons, a modern interface, and **AI‑powered services** (learning assistant and email automation).
 
-This project focuses on the **student learning experience**, allowing users to explore courses, study lessons, and track progress without instructor or admin interfaces.
+The system is intentionally **student‑focused**. Learners can explore courses, study lessons, track progress, and receive guided support—**without instructor or admin dashboards**.
 
 ---
 
 ## 📖 Project Overview
 
-SilayLearn is designed to make learning about Iloilo culture **accessible, engaging, and meaningful**. Inspired by global MOOC platforms, it incorporates a modern web design while emphasizing **localized Filipino content**.
+Inspired by global MOOC platforms, SilayLearn blends modern web design with **localized Filipino content** to make learning culturally meaningful and accessible. Courses highlight real Iloilo experiences and heritage, enabling self‑paced exploration for a wide audience.
 
-The platform offers courses related to:
+**Course themes include:**
 
 * Iloilo tourism and historical landmarks
 * Local cuisine and cooking traditions
@@ -18,34 +18,56 @@ The platform offers courses related to:
 * Traditional crafts and local skills
 * Festivals and cultural customs
 
-It is built for **students, teachers, parents, tourists, researchers, and lifelong learners** who want to explore Iloilo at their own pace.
+**Target users:** students, teachers, parents, tourists, researchers, and lifelong learners.
 
 ---
 
 ## 🎯 Purpose and Goals
 
 * Promote **localized online learning** centered on Iloilo culture
-* Preserve and share Iloilo’s traditions in a digital format
-* Provide a smooth and beginner-friendly MOOC experience
-* Support learners using an **AI Course Assistant**
+* Preserve and share Iloilo’s traditions digitally
+* Provide a smooth, beginner‑friendly MOOC experience
+* Support learners with **AI‑powered guidance**
 * Make cultural education accessible anytime, anywhere
 
 ---
 
 ## 🌺 Cultural Relevance & AI Integration
 
-SilayLearn highlights Iloilo’s cultural identity by focusing on **real local experiences** instead of generic topics. Each course connects directly to the province’s heritage and daily life.
+SilayLearn emphasizes Iloilo’s identity by grounding lessons in **real local contexts** rather than generic content.
 
-### 🤖 AI Course Assistant
+### 🤖 AI Course Assistant (Python Flask)
 
-The built-in AI assistant:
+The AI assistant:
 
-* Helps explain lessons in simpler terms
+* Explains lessons in simpler terms
 * Translates concepts into **Filipino or Hiligaynon**
-* Provides localized examples related to Iloilo
-* Acts as a learning guide for students
+* Provides localized Iloilo‑based examples
+* Maintains conversational context to guide learners
 
-This feature enhances understanding while keeping cultural context intact.
+AI interactions are handled via a **Python Flask API** and stored for continuity and improvement.
+
+---
+
+## ✉️ Email Automation System (Python Flask)
+
+SilayLearn includes an **automated email system** built with Python Flask to improve security, communication, and user engagement.
+
+**Use cases:**
+
+* Password reset requests
+* Account and system notifications
+* Course‑related updates (future‑ready)
+
+**How it works:**
+
+1. A user triggers an action (e.g., password reset)
+2. The backend generates a **secure, unique token**
+3. The token is saved with an **expiration time**
+4. Flask sends an automated email containing the action link
+5. The user completes the action securely
+
+This design ensures **automation, security, and reliability** with minimal manual handling.
 
 ---
 
@@ -53,22 +75,22 @@ This feature enhances understanding while keeping cultural context intact.
 
 ### Frontend
 
-* **React.js**
-* **Vite**
-* **Tailwind CSS**
-* **JavaScript (ES6), JSX**
-* **TypeScript, TSX**
+* React.js
+* Vite
+* Tailwind CSS
+* JavaScript (ES6), JSX
+* TypeScript, TSX
 * React Hooks
 * React Router
 
 ### Backend
 
-* **PHP**
-* **Python Flask** (AI Assistant API)
+* PHP (core backend logic)
+* Python Flask (AI assistant & email automation APIs)
 
 ### Database
 
-* **MySQL**
+* MySQL
 
 ### Tools & Environment
 
@@ -79,16 +101,29 @@ This feature enhances understanding while keeping cultural context intact.
 
 ---
 
-## 🗄️ Database Integration
+## 🗄️ Database Design & Integration
 
-The platform uses **MySQL** as its primary relational database. It stores:
+SilayLearn uses **MySQL** as a relational database with enforced foreign keys to maintain data integrity. Backend APIs follow **CRUD operations** (Create, Read, Update, Delete).
 
-* User information
-* Course data
-* Lesson content
-* Student progress
+### Core Tables & Roles
 
-All backend operations follow **CRUD principles** (Create, Read, Update, Delete) to ensure smooth data handling.
+* **`users`** – Stores learner accounts and serves as the central reference table.
+* **`ref_courses`** – Stores course metadata (title, category, thumbnail).
+* **`ref_instructors`** – Stores instructor display information (no instructor UI implemented).
+* **`ref_course_content`** – Groups lessons into course sections/modules.
+* **`ref_course_lessons`** – Stores individual lessons (video/reading/quiz).
+* **`tra_user_courses`** – Manages enrollments and course‑level progress (many‑to‑many between users and courses).
+* **`progress`** – Tracks lesson‑level completion for accurate progress calculation.
+* **`chat_history`** – Saves AI assistant conversations per user.
+* **`tra_comment`** – Stores learner ratings and feedback.
+* **`password_reset_tokens`** – Supports secure email‑based password recovery.
+
+### Relationship Summary
+
+* One **user** → many **enrolled courses**
+* One **course** → many **content sections** → many **lessons**
+* Progress is tracked per **lesson** and aggregated per **course**
+* AI chats and reset tokens are directly linked to users
 
 ---
 
@@ -96,43 +131,34 @@ All backend operations follow **CRUD principles** (Create, Read, Update, Delete)
 
 ### 📌 Prerequisites
 
-Make sure you have the following installed:
-
-* **Node.js** (for React frontend)
-* **Python** (for Flask AI assistant)
-* **XAMPP** (for PHP & MySQL)
+* **Node.js** (frontend)
+* **Python** (Flask services)
+* **XAMPP** (PHP & MySQL)
 
 ---
 
 ### 🔹 Frontend (React + Vite)
 
-1. Open a terminal in the project root directory
-2. Install dependencies:
+```bash
+npm install
+npm run dev
+```
 
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-
-   ```bash
-   npm run dev
-   ```
-4. Open the provided local URL in your browser
+Open the provided local URL in your browser.
 
 ---
 
-### 🔹 AI Assistant (Python Flask)
+### 🔹 AI Assistant & Email Automation (Python Flask)
 
-1. Make sure **Python** is installed
+1. Install Python (if not already installed)
+2. Open a terminal in the Flask directory
+3. Run:
 
-   * If not, download it from the official Python website
-2. Open a terminal in the Flask project directory
-3. Run the Flask server:
+```bash
+python app.py
+```
 
-   ```bash
-   python app.py
-   ```
-4. The API will run locally and handle lesson explanations and translations
+The local API will handle AI assistance and email automation.
 
 ---
 
@@ -140,26 +166,17 @@ Make sure you have the following installed:
 
 1. Install and open **XAMPP**
 2. Start **Apache** and **MySQL**
-3. Use **phpMyAdmin** to:
-
-   * Create the database
-   * Import the provided SQL file (if available)
-4. Place the PHP backend files inside the `htdocs` folder
+3. Use **phpMyAdmin** to create/import the database
+4. Place PHP backend files in the `htdocs` directory
 5. Access backend routes via `localhost`
 
 ---
 
 ## 👤 User Scope
 
-* This project is **student-focused only**
-* Users can:
-
-  * Browse courses
-  * Enroll in lessons
-  * Track learning progress
-  * Use the AI learning assistant
-
-❌ There are **no instructor or admin dashboards** included in this system.
+* Student‑only learning platform
+* No instructor or admin dashboards
+* Focused on learning, progress tracking, and cultural exploration
 
 ---
 
@@ -169,14 +186,12 @@ Make sure you have the following installed:
 * Offline lesson support
 * Mobile optimization
 * Community discussions
-* Expanded AI features
+* Expanded AI capabilities
 
 ---
 
 ## 📜 License
 
-This project is developed for **educational purposes** and cultural promotion.
-
----
+Developed for **educational purposes** and the promotion of Iloilo culture.
 
 
