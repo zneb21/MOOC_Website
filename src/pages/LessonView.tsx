@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/accordion";
 import LiquidEther from "@/components/ui/liquidether";
 
-// Icons
+// Icons (Extended imports for user avatars)
 import {
   Menu,
   ChevronLeft,
@@ -25,17 +25,46 @@ import {
   ArrowLeft,
   Send,
   Clock,
-  User as UserIcon // Added UserIcon for fallback
+  User as UserIcon, // Added UserIcon for fallback
+  Smile, 
+  Heart, 
+  Star, 
+  Zap,  
+  Leaf, 
+  Coffee, 
+  Music, 
+  Palette, 
+  BookOpen, 
+  Globe, 
+  Sun, 
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
-/* TYPES                                   */
+/* TYPES & CONFIG                               */
 /* -------------------------------------------------------------------------- */
 
 const API_URL = "http://localhost/mooc_api/get_courses.php";
 const UPDATE_PROGRESS_API = "http://localhost/mooc_api/update_course_progress.php";
+
+// NEW: Avatar Map definition (Matches the keys and icons from AvatarSelector.tsx)
+// NOTE: The 'bgClass' values (e.g., bg-secondary) must be correctly defined in your CSS/Tailwind config to render colors.
+const AVATAR_MAP: { [key: string]: { icon: React.ElementType, bgClass: string } } = {
+  smile: { icon: Smile, bgClass: "bg-secondary" }, // Assume bg-secondary is defined
+  heart: { icon: Heart, bgClass: "bg-coral" },     // Assume bg-coral is defined
+  star: { icon: Star, bgClass: "bg-gold" },       // Assume bg-gold is defined
+  zap: { icon: Zap, bgClass: "bg-accent" },       // Assume bg-accent is defined
+  leaf: { icon: Leaf, bgClass: "bg-primary" },    // Assume bg-primary is defined
+  coffee: { icon: Coffee, bgClass: "bg-coral-light" },
+  music: { icon: Music, bgClass: "bg-teal" },
+  palette: { icon: Palette, bgClass: "bg-blue" },
+  bookopen: { icon: BookOpen, bgClass: "bg-purple" },
+  globe: { icon: Globe, bgClass: "bg-indigo" },
+  sun: { icon: Sun, bgClass: "bg-yellow" },
+  // Default fallback is handled by logic later
+};
+
 
 type LessonFromApi = {
   lesson_id: number;
@@ -93,6 +122,7 @@ export default function LessonView() {
   // ------------------------------------------
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userAvatarId, setUserAvatarId] = useState<string | null>(null); // NEW STATE for avatar ID
 
   useEffect(() => {
     // 1. Get ID
@@ -102,17 +132,24 @@ export default function LessonView() {
       if (userRaw) {
         const parsed = JSON.parse(userRaw);
         if (parsed.dbId) userId = Number(parsed.dbId);
-        // Try to get avatar from new object structure
+        
+        // Retrieve Avatar URL first
         if (parsed.profile_picture) setUserAvatar(parsed.profile_picture);
-        else if (parsed.avatar) setUserAvatar(parsed.avatar);
+        else if (parsed.avatar) setUserAvatar(parsed.avatar); // Fallback for 'avatar' field if it's a URL
+        
+        // Retrieve Avatar ID if it exists
+        if (parsed.avatarId) {
+            setUserAvatarId(parsed.avatarId);
+        }
+
       } else {
         // Fallback to old structure
         const oldUserRaw = localStorage.getItem("user");
         if (oldUserRaw) {
           const parsed = JSON.parse(oldUserRaw);
           if (parsed.id) userId = Number(parsed.id);
-          // Try to get avatar from old object structure
           if (parsed.profile_picture) setUserAvatar(parsed.profile_picture);
+          if (parsed.avatar_id) setUserAvatarId(parsed.avatar_id);
         }
       }
       const simpleId = localStorage.getItem("user_id");
@@ -332,7 +369,7 @@ export default function LessonView() {
       const reply = res.data.reply || "No response";
       setChatMessages((prev) => [...prev, { sender: "assistant", text: reply }]);
     } catch (err) {
-      setChatMessages((prev) => [...prev, { sender: "assistant", text: "Error connecting to Silay AI." }]);
+      setChatMessages((prev) => [...prev, { sender: "assistant", text: "Error connecting to Roxy AI." }]);
     } finally {
       setIsTyping(false);
       isSendingRef.current = false;
@@ -540,50 +577,80 @@ export default function LessonView() {
                      <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto mb-4 pr-1 scroll-smooth">
                         {/* Intro */}
                         <div className="flex flex-col items-center justify-center py-8 text-center space-y-3 opacity-60">
-                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] grid place-items-center">
-                              <Sparkles className="w-6 h-6 text-black" />
+                           {/* AI Coach Avatar (Intro) - FIX APPLIED */}
+                           <div className="w-12 h-12 rounded-full border border-white/20 shadow-lg relative overflow-hidden">
+                              <img 
+                                 src="/ai_coach_avatar.jpg" 
+                                 alt="AI Coach Roxy" 
+                                 className="absolute inset-0 w-full h-full object-cover" 
+                              />
                            </div>
                            <p className="text-xs text-zinc-400 max-w-[200px]">
-                             I'm Silay, your heritage guide. Ask me about the culture behind this lesson.
+                             I'm Roxy, your heritage guide. Ask me about the culture behind this lesson.
                            </p>
                         </div>
 
-                        {chatMessages.map((msg, i) => (
-                           <motion.div 
-                             initial={{ opacity: 0, y: 10 }}
-                             animate={{ opacity: 1, y: 0 }}
-                             key={i} 
-                             className={cn("flex gap-3", msg.sender === "user" ? "flex-row-reverse" : "")}
-                           >
-                              {msg.sender === "assistant" ? (
-                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center border border-white/20 shadow-lg flex-shrink-0 mt-1">
-                                   <Sparkles className="w-4 h-4 text-emerald-950" />
-                                 </div>
-                              ) : (
-                                 <div className="w-8 h-8 rounded-full bg-[#F4B942] border border-white/20 shadow-lg flex-shrink-0 mt-1 overflow-hidden flex items-center justify-center">
-                                    {userAvatar ? (
-                                        <img src={userAvatar} alt="User" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <UserIcon className="w-4 h-4 text-black" />
-                                    )}
-                                 </div>
-                              )}
-                              
-                              <div className={cn(
-                                 "p-3.5 rounded-2xl text-xs leading-relaxed shadow-lg max-w-[85%]",
-                                 msg.sender === "user" 
-                                    ? "bg-[#F4B942] text-zinc-900 font-medium rounded-tr-sm"
-                                    : "bg-white/10 backdrop-blur-xl border border-white/10 text-zinc-100 rounded-tl-sm"
-                              )}>
-                                 {msg.text}
-                              </div>
-                           </motion.div>
-                        ))}
+                        {chatMessages.map((msg, i) => {
+                           // NEW: Determine user's current avatar/icon
+                           const CurrentUserIcon = userAvatarId && AVATAR_MAP[userAvatarId] ? AVATAR_MAP[userAvatarId].icon : UserIcon;
+                           // Fallback to the main accent color if the specific bgClass for the avatar ID is missing
+                           const CurrentUserBg = userAvatarId && AVATAR_MAP[userAvatarId] ? AVATAR_MAP[userAvatarId].bgClass : "bg-[#F4B942]";
+                           
+                           return (
+                             <motion.div 
+                               initial={{ opacity: 0, y: 10 }}
+                               animate={{ opacity: 1, y: 0 }}
+                               key={i} 
+                               className={cn("flex gap-3", msg.sender === "user" ? "flex-row-reverse" : "")}
+                             >
+                                {msg.sender === "assistant" ? (
+                                   // AI Coach Avatar (Message) - FIX APPLIED
+                                   <div className="w-8 h-8 rounded-full border border-white/20 shadow-lg flex-shrink-0 mt-1 relative overflow-hidden">
+                                      <img 
+                                         src="/ai_coach_avatar.jpg" 
+                                         alt="AI Coach Roxy" 
+                                         className="absolute inset-0 w-full h-full object-cover" 
+                                      />
+                                   </div>
+                                ) : (
+                                   // User Avatar Logic (Fixed with robust cropping structure)
+                                   <div className={cn(
+                                      "w-8 h-8 rounded-full border border-white/20 shadow-lg flex-shrink-0 mt-1 overflow-hidden",
+                                      // If userAvatar (URL) exists, use relative/absolute for cropping, otherwise use flex for icon centering
+                                      userAvatar ? "relative" : "flex items-center justify-center",
+                                      CurrentUserBg
+                                   )}>
+                                      {userAvatar ? (
+                                          // PRIORITY 1: If a direct image URL is available, use it
+                                          <img src={userAvatar} alt="User" className="absolute inset-0 w-full h-full object-cover" />
+                                      ) : (
+                                          // PRIORITY 2: Otherwise, use the mapped icon or the default UserIcon
+                                          <CurrentUserIcon className="w-4 h-4 text-black" />
+                                      )}
+                                   </div>
+                                )}
+                                
+                                <div className={cn(
+                                   "p-3.5 rounded-2xl text-xs leading-relaxed shadow-lg max-w-[85%]",
+                                   msg.sender === "user" 
+                                      ? "bg-[#F4B942] text-zinc-900 font-medium rounded-tr-sm"
+                                      : "bg-white/10 backdrop-blur-xl border border-white/10 text-zinc-100 rounded-tl-sm"
+                                )}>
+                                   {msg.text}
+                                </div>
+                             </motion.div>
+                           )
+                        })}
                         
                         {isTyping && (
                            <div className="flex gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center border border-white/20 shadow-lg flex-shrink-0">
-                                <Sparkles className="w-4 h-4 text-emerald-950" />
+                              {/* AI Coach Typing Indicator Avatar - FIX APPLIED */}
+                              <div className="w-8 h-8 rounded-full border border-white/20 shadow-lg flex-shrink-0 relative overflow-hidden">
+                                 <img 
+                                    src="/ai_coach_avatar.jpg" 
+                                    alt="AI Coach Roxy" 
+                                    className="absolute inset-0 w-full h-full object-cover" 
+                                 />
                               </div>
                               <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/5 backdrop-blur-md border border-white/5 flex items-center gap-1">
                                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" />
