@@ -388,18 +388,22 @@ const About = () => {
                     >
 
 
-                    {stats.map((s) => (
-                      <motion.div key={s.label} variants={itemVariants}>
-                        <PremiumTiltCard maxTilt={8}>
-                          <div className="p-5">
-                            <s.icon className="w-5 h-5 text-[#F4B942] mb-2" />
-                            <div className="text-white/90 text-sm font-semibold">
-                              {s.label}
+                      {stats.map((s) => (
+                        <motion.div key={s.label} variants={itemVariants} className="w-56">
+                          <PremiumTiltCard maxTilt={8} className="w-56">
+                            <div className="p-5 h-24 flex flex-col items-center justify-center text-center">
+                              <div className="w-6 h-6 grid place-items-center mb-2">
+                                <s.icon className="w-5 h-5 text-[#F4B942]" />
+                              </div>
+                              <div className="text-white/90 text-sm font-semibold leading-none">
+                                {s.label}
+                              </div>
                             </div>
-                          </div>
-                        </PremiumTiltCard>
-                      </motion.div>
-                    ))}
+                          </PremiumTiltCard>
+                        </motion.div>
+                      ))}
+
+
                   </motion.div>
                 </Reveal>
               </div>
