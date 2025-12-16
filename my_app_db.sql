@@ -300,6 +300,28 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `avatar_id`, `cr
 (27, 'Mist', 'glass418cloudy@gmail.com', '$2y$10$Ld/qvBq7ZGRjfnMVhQ/s8uk33VlAVkWlQO0Sk0uMEeGM3Ip6Cfjwu', 'learner', 'default', '2025-12-11 20:58:34'),
 (28, 'halloworld', 'ckaristoki@outlook.com', '$2y$10$o3pxkKk9ZPHdMIbkOBuXOuc2TVF1eydgTkftqNvbW8uxhQn7C6Yjq', 'learner', 'default', '2025-12-12 21:12:26');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `presentations`
+--
+
+CREATE TABLE `presentations` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `content` longtext DEFAULT NULL,
+  `thumbnail` varchar(500) DEFAULT NULL,
+  `file_url` varchar(500) DEFAULT NULL,
+  `author_id` int(11) DEFAULT NULL,
+  `author_name` varchar(100) DEFAULT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `is_public` tinyint(1) DEFAULT 1,
+  `views` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -399,6 +421,15 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `presentations`
+--
+ALTER TABLE `presentations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `author_id` (`author_id`),
+  ADD KEY `category` (`category`),
+  ADD KEY `is_public` (`is_public`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -479,6 +510,12 @@ ALTER TABLE `tra_user_courses`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+
+--
+-- AUTO_INCREMENT for table `presentations`
+--
+ALTER TABLE `presentations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables

@@ -43,7 +43,7 @@ INSERT INTO `chat_history` (`id`, `user_id`, `role`, `message`, `created_at`) VA
 (3, 9, 'user', 'hello', '2025-12-08 17:21:31'),
 (4, 9, 'assistant', 'Hello! Welcome to our lesson about Iloilo. How can I help you today?', '2025-12-08 17:21:36'),
 (5, 9, 'user', 'hello', '2025-12-08 17:35:19'),
-(6, 9, 'assistant', 'Hello there! Welcome again to our lesson about Iloilo.\n\nIs there anything you\'d like to know or explore about Iloilo right now? We can talk about its famous **La Paz Batchoy**, beautiful **old churches**, or even just the meaning of \"Iloilo\"!', '2025-12-08 17:35:24');
+(6, 9, 'assistant', 'Hello there! Welcome again to our lesson about Iloilo.\n\nIs there anything you\'d like to know or explore about Iloilo right now? We can talk about its famous **La Paz Batchoy**, beautiful **old churches**, or even just the meaning of \"Iloilo"\'!', '2025-12-08 17:35:24');
 
 -- --------------------------------------------------------
 
