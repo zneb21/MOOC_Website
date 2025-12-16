@@ -1102,19 +1102,19 @@ const RockPaperScissorsComponent = () => {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Score Card */}
-        <div className="bg-gradient-to-br from-orange-500/10 via-orange-400/5 to-transparent dark:from-orange-500/20 dark:via-orange-400/10 border-2 border-orange-300/30 dark:border-orange-600/30 rounded-2xl p-5 shadow-lg hover:shadow-orange-500/20 transition-all duration-300">
+        {/* Score Card - VIOLET */}
+        <div className="bg-gradient-to-br from-violet-500/10 via-violet-400/5 to-transparent dark:from-violet-500/20 dark:via-violet-400/10 border-2 border-violet-300/30 dark:border-violet-600/30 rounded-2xl p-5 shadow-lg hover:shadow-violet-500/20 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/20 dark:bg-orange-500/30 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <div className="w-10 h-10 rounded-xl bg-violet-500/20 dark:bg-violet-500/30 flex items-center justify-center">
+              <Zap className="w-5 h-5 text-violet-600 dark:text-violet-400" />
             </div>
-            <span className="text-xs font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wide">Win Streak</span>
+            <span className="text-xs font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wide">Win Streak</span>
           </div>
-          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{score}</div>
+          <div className="text-3xl font-bold text-violet-600 dark:text-violet-400">{score}</div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Consecutive wins</div>
         </div>
 
-        {/* High Score Card */}
+        {/* High Score Card - GOLD (Kept for consistency) */}
         <div className="bg-gradient-to-br from-[#F4B942]/10 via-[#F4B942]/5 to-transparent dark:from-[#F4B942]/20 dark:via-[#F4B942]/10 border-2 border-[#F4B942]/30 dark:border-[#F4B942]/30 rounded-2xl p-5 shadow-lg hover:shadow-[#F4B942]/20 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <div className="w-10 h-10 rounded-xl bg-[#F4B942]/20 dark:bg-[#F4B942]/30 flex items-center justify-center">
@@ -1132,10 +1132,10 @@ const RockPaperScissorsComponent = () => {
         </div>
       </div>
 
-      {/* Control Buttons */}
+      {/* Control Buttons - VIOLET */}
       <div className="flex justify-end gap-2">
         {gameState === 'menu' && (
-          <Button onClick={startGame} variant="default" size="default" className="shadow-md bg-orange-600 hover:bg-orange-700">
+          <Button onClick={startGame} variant="default" size="default" className="shadow-md bg-violet-600 hover:bg-violet-700">
             <Play className="w-4 h-4 mr-2" />
             Start Showdown
           </Button>
@@ -1148,8 +1148,8 @@ const RockPaperScissorsComponent = () => {
         )}
       </div>
 
-      {/* Game Board */}
-      <div className="relative bg-gradient-to-br from-white/90 via-orange-50/80 to-white/90 dark:from-zinc-900/90 dark:via-orange-950/80 dark:to-zinc-900/90 backdrop-blur-2xl border-2 border-orange-200/50 dark:border-orange-800/30 rounded-3xl p-8 shadow-2xl hover:shadow-orange-500/20 transition-all duration-300">
+      {/* Game Board - VIOLET */}
+      <div className="relative bg-gradient-to-br from-white/90 via-violet-50/80 to-white/90 dark:from-zinc-900/90 dark:via-violet-950/80 dark:to-zinc-900/90 backdrop-blur-2xl border-2 border-violet-200/50 dark:border-violet-800/30 rounded-3xl p-8 shadow-2xl hover:shadow-violet-500/20 transition-all duration-300">
         {/* Game Info Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -1178,8 +1178,8 @@ const RockPaperScissorsComponent = () => {
           )}
         </div>
 
-        {/* Choices Display */}
-        <div className="bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-950 rounded-2xl p-6 mb-6 border-2 border-orange-300/30 dark:border-orange-700/30">
+        {/* Choices Display - VIOLET */}
+        <div className="bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900 dark:to-violet-950 rounded-2xl p-6 mb-6 border-2 border-violet-300/30 dark:border-violet-700/30">
           <div className="flex justify-center items-center gap-8">
             {/* Player Choice */}
             <div className="text-center">
@@ -1188,8 +1188,8 @@ const RockPaperScissorsComponent = () => {
                 w-24 h-24 rounded-2xl flex items-center justify-center
                 transition-all duration-300
                 ${playerChoice 
-                  ? 'bg-gradient-to-br from-orange-400 to-orange-600 dark:from-orange-500 dark:to-orange-700 text-white shadow-lg scale-110' 
-                  : 'bg-gradient-to-br from-orange-200 to-orange-300 dark:from-orange-800 dark:to-orange-900'
+                  ? 'bg-gradient-to-br from-violet-400 to-violet-600 dark:from-violet-500 dark:to-violet-700 text-white shadow-lg scale-110' 
+                  : 'bg-gradient-to-br from-violet-200 to-violet-300 dark:from-violet-800 dark:to-violet-900'
                 }
               `}>
                 {playerChoice ? getChoiceIcon(playerChoice) : '?'}
@@ -1263,10 +1263,10 @@ const RockPaperScissorsComponent = () => {
           </div>
         )}
 
-        {/* Player Choices */}
+        {/* Player Choices - VIOLET */}
         {gameState === 'playing' && (
-          <div className="bg-gradient-to-br from-orange-50 via-slate-50 to-orange-50 dark:from-orange-950 dark:via-slate-900 dark:to-orange-950 rounded-2xl p-6 border-2 border-orange-300/30 dark:border-orange-700/30 shadow-inner relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(251,146,60,0.1),transparent_70%)]"></div>
+          <div className="bg-gradient-to-br from-violet-50 via-slate-50 to-violet-50 dark:from-violet-950 dark:via-slate-900 dark:to-violet-950 rounded-2xl p-6 border-2 border-violet-300/30 dark:border-violet-700/30 shadow-inner relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_70%)]"></div>
             <div className="relative grid grid-cols-3 gap-4 max-w-md mx-auto">
               {choices.map((choice) => (
                 <button
@@ -1275,12 +1275,12 @@ const RockPaperScissorsComponent = () => {
                   disabled={playerChoice !== null}
                   className={`
                     aspect-square rounded-2xl flex flex-col items-center justify-center gap-2
-                    bg-gradient-to-br from-orange-200 to-orange-300 dark:from-orange-800 dark:to-orange-900
-                    hover:from-orange-300 hover:to-orange-400 dark:hover:from-orange-700 dark:hover:to-orange-800
+                    bg-gradient-to-br from-violet-200 to-violet-300 dark:from-violet-800 dark:to-violet-900
+                    hover:from-violet-300 hover:to-violet-400 dark:hover:from-violet-700 dark:hover:to-violet-800
                     transition-all duration-300 hover:scale-105 active:scale-95
                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
-                    text-orange-700 dark:text-orange-300 font-semibold
-                    shadow-lg hover:shadow-xl border-2 border-orange-400/20 dark:border-orange-600/20
+                    text-violet-700 dark:text-violet-300 font-semibold
+                    shadow-lg hover:shadow-xl border-2 border-violet-400/20 dark:border-violet-600/20
                   `}
                 >
                   {getChoiceIcon(choice)}
@@ -1291,11 +1291,11 @@ const RockPaperScissorsComponent = () => {
           </div>
         )}
 
-        {/* Menu Overlay */}
+        {/* Menu Overlay - VIOLET */}
         {gameState === 'menu' && (
           <div className="absolute inset-8 flex items-center justify-center bg-black/60 backdrop-blur-md rounded-2xl">
-            <div className="text-center bg-gradient-to-br from-white/95 via-orange-50/95 to-white/95 dark:from-black/95 dark:via-orange-950/95 dark:to-black/95 rounded-2xl p-10 shadow-2xl border-2 border-orange-200/50 dark:border-orange-800/30 max-w-md">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center shadow-lg">
+            <div className="text-center bg-gradient-to-br from-white/95 via-violet-50/95 to-white/95 dark:from-black/95 dark:via-violet-950/95 dark:to-black/95 rounded-2xl p-10 shadow-2xl border-2 border-violet-200/50 dark:border-violet-800/30 max-w-md">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 dark:from-violet-400 dark:to-violet-500 flex items-center justify-center shadow-lg">
                 <Hand className="w-10 h-10 text-white" />
               </div>
               <h2 className="font-display text-3xl font-bold text-slate-900 dark:text-white mb-3">
@@ -1307,7 +1307,7 @@ const RockPaperScissorsComponent = () => {
               <p className="text-slate-500 dark:text-white/60 mb-6 text-xs">
                 Build your win streak—lose or draw and the drums reset to zero.
               </p>
-              <Button onClick={startGame} variant="default" size="lg" className="bg-orange-600 hover:bg-orange-700 shadow-lg">
+              <Button onClick={startGame} variant="default" size="lg" className="bg-violet-600 hover:bg-violet-700 shadow-lg">
                 <Play className="w-5 h-5 mr-2" />
                 Start Showdown
               </Button>
@@ -1316,23 +1316,23 @@ const RockPaperScissorsComponent = () => {
         )}
       </div>
 
-      {/* Instructions */}
-      <div className="bg-gradient-to-br from-white/90 via-orange-50/80 to-white/90 dark:from-zinc-900/90 dark:via-orange-950/80 dark:to-zinc-900/90 backdrop-blur-2xl border-2 border-orange-200/50 dark:border-orange-800/30 rounded-3xl p-8 shadow-2xl">
+      {/* Instructions - VIOLET */}
+      <div className="bg-gradient-to-br from-white/90 via-violet-50/80 to-white/90 dark:from-zinc-900/90 dark:via-violet-950/80 dark:to-zinc-900/90 backdrop-blur-2xl border-2 border-violet-200/50 dark:border-violet-800/30 rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/20 dark:bg-orange-500/30 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <div className="w-10 h-10 rounded-xl bg-violet-500/20 dark:bg-violet-500/30 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-violet-600 dark:text-violet-400" />
             </div>
             <span>How to Play - Festival Clash</span>
           </h3>
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 dark:bg-orange-500/20 rounded-lg border border-orange-500/20">
-            <Gamepad2 className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-            <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">Dinagyang Duel</span>
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-violet-500/10 dark:bg-violet-500/20 rounded-lg border border-violet-500/20">
+            <Gamepad2 className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+            <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">Dinagyang Duel</span>
           </div>
         </div>
         <div className="grid md:grid-cols-2 gap-4">
-          <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-300">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+          <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-violet-200/30 dark:border-violet-800/20 hover:bg-violet-50/50 dark:hover:bg-violet-950/30 transition-all duration-300">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 dark:from-violet-400 dark:to-violet-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
               1
             </div>
             <div className="flex-1">
@@ -1345,8 +1345,8 @@ const RockPaperScissorsComponent = () => {
               </div>
             </div>
           </div>
-          <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-300">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+          <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-violet-200/30 dark:border-violet-800/20 hover:bg-violet-50/50 dark:hover:bg-violet-950/30 transition-all duration-300">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 dark:from-violet-400 dark:to-violet-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
               2
             </div>
             <div className="flex-1">
@@ -1359,8 +1359,8 @@ const RockPaperScissorsComponent = () => {
               </div>
             </div>
           </div>
-          <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-300">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+          <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-violet-200/30 dark:border-violet-800/20 hover:bg-violet-50/50 dark:hover:bg-violet-950/30 transition-all duration-300">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 dark:from-violet-400 dark:to-violet-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
               3
             </div>
             <div className="flex-1">
@@ -1373,8 +1373,8 @@ const RockPaperScissorsComponent = () => {
               </div>
             </div>
           </div>
-          <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-300">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+          <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-violet-200/30 dark:border-violet-800/20 hover:bg-violet-50/50 dark:hover:bg-violet-950/30 transition-all duration-300">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 dark:from-violet-400 dark:to-violet-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
               4
             </div>
             <div className="flex-1">
@@ -1481,7 +1481,7 @@ const DinosaurGame = () => {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="rps" 
-                    className="h-auto py-3 text-xs md:text-sm font-bold transition-all duration-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl flex flex-col sm:flex-row gap-1 sm:gap-2 items-center justify-center"
+                    className="h-auto py-3 text-xs md:text-sm font-bold transition-all duration-300 data-[state=active]:bg-violet-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl flex flex-col sm:flex-row gap-1 sm:gap-2 items-center justify-center"
                   >
                     <span className="text-lg md:text-xl">🎉</span>
                     <span className="hidden sm:inline">Festival Clash</span>
