@@ -10,8 +10,6 @@ import Index from "./pages/Index";
 import About from "./pages/About";
 import Courses from "./pages/Courses";
 import CoursePreview from "./pages/CoursePreview";
-import Presentations from "./pages/Presentations";
-import PresentationView from "./pages/PresentationView";
 import DinosaurGame from "./pages/DinosaurGame";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -50,9 +48,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:id" element={<CoursePreview />} />
-            <Route path="/presentations" element={<Presentations />} />
-            <Route path="/presentations/:id" element={<PresentationView />} />
-            <Route path="/dinosaur-game" element={<DinosaurGame />} />
+            <Route path="/games" element={<DinosaurGame />} />
 
             {/* Lesson viewer route */}
             <Route path="/course/:id/lesson/:lessonSlug" element={<LessonView />} />

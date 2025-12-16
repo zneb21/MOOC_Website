@@ -20,6 +20,7 @@ import {
 
 import Reveal from "@/components/home/Reveal";
 import SectionSeparator from "@/components/home/SectionSeparator";
+import { cn } from "@/lib/utils";
 
 // ✅ Using your existing images as "cultural strip" placeholders
 import tourismImage from "@/assets/course-tourism.jpg";
@@ -27,13 +28,6 @@ import cookingImage from "@/assets/course-cooking.jpg";
 import agricultureImage from "@/assets/course-agriculture.jpg";
 import craftsImage from "@/assets/course-crafts.jpg";
 import heroImage from "@/assets/hero-iloilo.jpg";
-
-/* --------------------------------
-   helpers
---------------------------------- */
-function cn(...classes: Array<string | undefined | false>) {
-  return classes.filter(Boolean).join(" ");
-}
 
 /* --------------------------------
    PremiumTiltCard
