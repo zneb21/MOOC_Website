@@ -87,14 +87,16 @@ const FeaturedCourses = () => {
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+
           {featuredCourses.map((course, i) => (
             <Reveal key={course.id} delayMs={i * 90}>
-              <TiltCard className="group">
+              <TiltCard className="group h-full">
+
                   <Link
                     to={`/courses/${course.id}`}
                     className="
-                      relative block rounded-3xl overflow-hidden bg-white/60 dark:bg-black/20
+                      relative flex flex-col h-full rounded-3xl overflow-hidden bg-white/60 dark:bg-black/20
                       backdrop-blur-2xl border border-white/20 dark:border-white/10
                       shadow-xl dark:shadow-[0_22px_70px_rgba(0,0,0,0.45)]
                       transition-all duration-500
@@ -135,7 +137,7 @@ const FeaturedCourses = () => {
                   </div>
 
                   {/* content */}
-                  <div className="p-5 relative">
+                  <div className="p-5 relative flex flex-col flex-1">
                     <h3 className="font-display text-lg font-semibold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-[#F4B942] transition-colors">
                       {course.title}
                     </h3>
@@ -147,24 +149,31 @@ const FeaturedCourses = () => {
                       </span>
                     </p>
 
-                    <div className="flex items-center gap-4 text-sm text-slate-700/80 dark:text-white/65 mb-4">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-[#F4B942] fill-[#F4B942]" />
-                        <span className="font-medium text-slate-800 dark:text-white">
-                          {course.rating}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        <span>{course.students.toLocaleString()}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{course.duration}</span>
-                      </div>
-                    </div>
+                        <div className="flex items-center gap-4 text-sm text-slate-700/80 dark:text-white/65 mb-4">
+                          <div className="flex items-center gap-1">
+                            <span className="w-5 h-5 grid place-items-center">
+                              <Star className="w-4 h-4 text-[#F4B942] fill-[#F4B942]" />
+                            </span>
+                            <span className="font-medium text-slate-800 dark:text-white">{course.rating}</span>
+                          </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-black/10 dark:border-white/10">
+                          <div className="flex items-center gap-1">
+                            <span className="w-5 h-5 grid place-items-center">
+                              <Users className="w-4 h-4" />
+                            </span>
+                            <span>{course.students.toLocaleString()}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <span className="w-5 h-5 grid place-items-center">
+                              <Clock className="w-4 h-4" />
+                            </span>
+                            <span>{course.duration}</span>
+                          </div>
+                        </div>
+
+
+                    <div className="mt-auto flex items-center justify-between pt-4 border-t border-black/10 dark:border-white/10">
                       <span className="font-display text-xl font-bold text-emerald-600 dark:text-emerald-300">
                         {course.price}
                       </span>
