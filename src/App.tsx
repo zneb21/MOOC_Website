@@ -6,10 +6,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import MainLayout from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Courses from "./pages/Courses";
 import CoursePreview from "./pages/CoursePreview";
+import PresentationPage from "./pages/Presentations";
 import DinosaurGame from "./pages/DinosaurGame";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -26,7 +28,8 @@ import ClickSpark from '@/components/ClickSpark';
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  return (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
     <TooltipProvider>
@@ -44,14 +47,35 @@ const App = () => (
          <ScrollToTop /> {/* ✅ add this */}
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/courses/:id" element={<CoursePreview />} />
-            <Route path="/games" element={<DinosaurGame />} />
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/courses/:id" element={<CoursePreview />} />
+              <Route path="/presentations" element={<PresentationPage />} />
+              <Route path="/games" element={<DinosaurGame />} />
 
-            {/* Lesson viewer route */}
-            <Route path="/course/:id/lesson/:lessonSlug" element={<LessonView />} />
+              {/* Lesson viewer route */}
+              <Route path="/course/:id/lesson/:lessonSlug" element={<LessonView />} />
+
+              {/* For User Dashboard chuchu */}
+              <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+            </Route>
 
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -59,24 +83,6 @@ const App = () => (
             {/* Password Reset Routes - Public access */}
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} /> 
-
-            {/* For User Dashboard chuchu */}
-            <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
 
             {/* MUST stay last */}
             <Route path="*" element={<NotFound />} />
@@ -87,6 +93,7 @@ const App = () => (
     </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
