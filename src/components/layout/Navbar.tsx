@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "Courses", path: "/courses" },
+  { name: "Presentations", path: "/presentations" },
   { name: "Games", path: "/games" },
   { name: "About", path: "/about" },
 ];
