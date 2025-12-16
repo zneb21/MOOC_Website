@@ -4,47 +4,76 @@ import Reveal from "@/components/home/Reveal";
 import TiltCard from "@/components/home/TiltCard";
 import SectionSeparator from "@/components/home/SectionSeparator";
 
-import tourismImage from "@/assets/course-tourism.jpg";
-import cookingImage from "@/assets/course-cooking.jpg";
-import agricultureImage from "@/assets/course-agriculture.jpg";
-import craftsImage from "@/assets/course-crafts.jpg";
+import { useEffect, useMemo, useState } from "react";
 
-const categories = [
-  {
-    name: "Tourism",
-    description: "Explore Iloilo's heritage sites, festivals, and hidden gems",
-    icon: MapPin,
-    image: tourismImage,
-    courses: 12,
-    color: "bg-teal",
-  },
-  {
-    name: "Filipino Cooking",
-    description: "Master authentic Filipino recipes and cooking techniques",
-    icon: Utensils,
-    image: cookingImage,
-    courses: 15,
-    color: "bg-coral",
-  },
-  {
-    name: "Agriculture",
-    description: "Learn sustainable farming and traditional agricultural methods",
-    icon: Leaf,
-    image: agricultureImage,
-    courses: 8,
-    color: "bg-primary",
-  },
-  {
-    name: "Craftsmanship",
-    description: "Discover traditional weaving, pottery, and Filipino arts",
-    icon: Palette,
-    image: craftsImage,
-    courses: 10,
-    color: "bg-secondary",
-  },
-];
+type CourseFromApi = {
+  course_id: number;
+  course_category: string | null;
+  course_thumbnail_url?: string | null; // ✅ from get_courses.php (like CoursePreview)
+};
+
+const API_URL = "http://localhost/mooc_api/get_courses.php";
 
 const CategoriesSection = () => {
+  const [dbCourses, setDbCourses] = useState<CourseFromApi[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(API_URL);
+        const data: CourseFromApi[] = await res.json();
+        setDbCourses(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Failed to load categories:", e);
+        setDbCourses([]);
+      }
+    })();
+  }, []);
+
+  // ✅ unique categories only (first occurrence kept, duplicates skipped)
+  // ✅ thumbnail image pulled from DB (first course found for that category)
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    const iconCycle = [MapPin, Utensils, Leaf, Palette]; // ✅ no mapping, just "at least one icon"
+
+    const uniqueCats = dbCourses
+      .map((c) => (c.course_category ?? "").trim())
+      .filter(Boolean)
+      .filter((cat) => {
+        const key = cat.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+    return uniqueCats.map((cat, idx) => {
+      const key = cat.toLowerCase();
+
+      const coursesInCat = dbCourses.filter(
+        (c) => (c.course_category ?? "").trim().toLowerCase() === key
+      );
+
+      // ✅ "first one you can find in the DB" for the image (same idea as CoursePreview)
+      const firstWithThumb = coursesInCat.find((c) => !!c.course_thumbnail_url);
+      const imageFromDb = firstWithThumb?.course_thumbnail_url ?? null;
+
+      const Icon = iconCycle[idx % iconCycle.length];
+
+      // keep your existing class names; rotate a few so cards still look varied
+      const colorCycle = ["bg-teal", "bg-coral", "bg-primary", "bg-secondary"];
+      const color = colorCycle[idx % colorCycle.length];
+
+      return {
+        name: cat,
+        description: "Explore courses in this category",
+        icon: Icon,
+        image: imageFromDb, // ✅ from DB
+        courses: coursesInCat.length,
+        color,
+      };
+    });
+  }, [dbCourses]);
+
   return (
     <section className="relative py-20 lg:py-28 bg-muted overflow-hidden">
       {/* ambient blobs */}
@@ -84,13 +113,17 @@ const CategoriesSection = () => {
                     <div className="absolute -inset-x-24 -inset-y-24 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                   </div>
 
-                  {/* image */}
+                  {/* image (from DB) */}
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
+                    {category.image ? (
+                      <img
+                        src={category.image}
+                        alt={category.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-black/10 dark:bg-white/5" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent" />
                   </div>
 

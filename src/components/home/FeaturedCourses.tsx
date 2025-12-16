@@ -4,60 +4,51 @@ import { Button } from "@/components/ui/button";
 import Reveal from "@/components/home/Reveal";
 import TiltCard from "@/components/home/TiltCard";
 import SectionSeparator from "@/components/home/SectionSeparator";
+import { useEffect, useMemo, useState } from "react";
 
-import tourismImage from "@/assets/course-tourism.jpg";
-import cookingImage from "@/assets/course-cooking.jpg";
-import agricultureImage from "@/assets/course-agriculture.jpg";
-import craftsImage from "@/assets/course-crafts.jpg";
+type CourseFromApi = {
+  course_id: number;
+  course_title: string;
+  course_category: string | null;
+  course_thumbnail_url?: string | null;
+  instructor_name?: string | null;
+  course_price: number;
+};
 
-const featuredCourses = [
-  {
-    id: 1,
-    title: "Discover Iloilo: A Complete Tourism Guide",
-    instructor: "Maria Santos",
-    image: tourismImage,
-    rating: 4.9,
-    students: 1250,
-    duration: "8 hours",
-    category: "Tourism",
-    price: "₱1,499",
-  },
-  {
-    id: 2,
-    title: "Traditional Filipino Cuisine Masterclass",
-    instructor: "Chef Ramon Cruz",
-    image: cookingImage,
-    rating: 4.8,
-    students: 980,
-    duration: "12 hours",
-    category: "Cooking",
-    price: "₱1,999",
-  },
-  {
-    id: 3,
-    title: "Sustainable Rice Farming Techniques",
-    instructor: "Juan dela Cruz",
-    image: agricultureImage,
-    rating: 4.7,
-    students: 540,
-    duration: "6 hours",
-    category: "Agriculture",
-    price: "₱999",
-  },
-  {
-    id: 4,
-    title: "Hablon Weaving: Traditional Textile Art",
-    instructor: "Lola Perla",
-    image: craftsImage,
-    rating: 4.9,
-    students: 320,
-    duration: "10 hours",
-    category: "Craftsmanship",
-    price: "₱1,799",
-  },
-];
+const API_URL = "http://localhost/mooc_api/get_courses.php";
 
 const FeaturedCourses = () => {
+  const [dbCourses, setDbCourses] = useState<CourseFromApi[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(API_URL);
+        const data: CourseFromApi[] = await res.json();
+        setDbCourses(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Failed to load featured courses:", e);
+        setDbCourses([]);
+      }
+    })();
+  }, []);
+
+  const featuredCourses = useMemo(() => {
+    return dbCourses.slice(0, 4).map((c) => ({
+      // ✅ match CoursePreview's lookup: String(course_id)
+      id: String(c.course_id),
+      title: c.course_title,
+      instructor: c.instructor_name ?? "Unknown Instructor",
+      image: c.course_thumbnail_url ?? null,
+      rating: 4.8,
+      students: 1250,
+      duration: "Self-paced",
+      category: c.course_category ?? "General",
+      price: `₱${Number(c.course_price ?? 0).toLocaleString()}`,
+    }));
+  }, [dbCourses]);
+
+
   return (
     <section className="relative py-20 lg:py-28 overflow-hidden bg-slate-50 dark:bg-emerald-950/90">
       {/* ✨ About-page style ambience */}
@@ -100,53 +91,68 @@ const FeaturedCourses = () => {
           {featuredCourses.map((course, i) => (
             <Reveal key={course.id} delayMs={i * 90}>
               <TiltCard className="group">
-                <Link
-                  to={`/courses/${course.id}`}
-                  className="
-                    relative block rounded-3xl overflow-hidden bg-white/60 dark:bg-black/20
-                    backdrop-blur-2xl border border-white/20 dark:border-white/10
-                    shadow-xl dark:shadow-[0_22px_70px_rgba(0,0,0,0.45)]
-                    transition-all duration-500
-                    hover:-translate-y-1 hover:shadow-2xl dark:hover:shadow-[0_34px_110px_rgba(0,0,0,0.65)]
-                    hover:ring-1 hover:ring-emerald-500/30 dark:hover:ring-emerald-300/30
-                  "
-                >
+                  <Link
+                    to={`/courses/${course.id}`}
+                    className="
+                      relative block rounded-3xl overflow-hidden bg-white/60 dark:bg-black/20
+                      backdrop-blur-2xl border border-white/20 dark:border-white/10
+                      shadow-xl dark:shadow-[0_22px_70px_rgba(0,0,0,0.45)]
+                      transition-all duration-500
+                      hover:-translate-y-1 hover:shadow-2xl dark:hover:shadow-[0_34px_110px_rgba(0,0,0,0.65)]
+                      hover:ring-1 hover:ring-emerald-500/30 dark:hover:ring-emerald-300/30
+                    "
+                  >
+
                   {/* subtle glass sweep */}
                   <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <div className="absolute -inset-x-24 -inset-y-24 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                   </div>
 
-                  {/* image */}
+                  {/* image (from DB) */}
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    /> 
+                    {course.image ? (
+                      <img
+                        src={course.image}
+                        alt={course.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-black/10 dark:bg-white/5" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
 
                     {/* category pill */}
-                    <div className="absolute top-3 left-3">
-                      <span className="bg-black/40 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md border border-white/15">
-                        {course.category}
-                      </span>
-                    </div>
+                      <div className="absolute top-3 left-3">
+                        <span
+                          className="bg-black/40 text-white text-xs font-semibold px-3 py-1 rounded-full ... cursor-pointer"
+                          // ✅ optional: only needed if you ever stop wrapping the whole card in <Link>
+                          // onClick={(e) => { e.preventDefault(); navigate(`/course/${course.id}`); }}
+                        >
+                          {course.category}
+                        </span>
+                      </div>
+
                   </div>
 
                   {/* content */}
-                  <div className="p-5 relative"> 
+                  <div className="p-5 relative">
                     <h3 className="font-display text-lg font-semibold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-[#F4B942] transition-colors">
                       {course.title}
                     </h3>
 
                     <p className="text-slate-700/80 dark:text-white/65 text-sm mb-3">
-                      by <span className="text-slate-800 dark:text-white/80">{course.instructor}</span>
+                      by{" "}
+                      <span className="text-slate-800 dark:text-white/80">
+                        {course.instructor}
+                      </span>
                     </p>
 
                     <div className="flex items-center gap-4 text-sm text-slate-700/80 dark:text-white/65 mb-4">
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-[#F4B942] fill-[#F4B942]" />
-                        <span className="font-medium text-slate-800 dark:text-white">{course.rating}</span>
+                        <span className="font-medium text-slate-800 dark:text-white">
+                          {course.rating}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4" />

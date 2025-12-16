@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import LessonView from "./pages/LessonView";
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ForgotPassword from './pages/ForgotPassword';
+import ScrollToTop from "@/components/home/ScrollToTop";
 
 // 1. IMPORT ClickSpark component
 import ClickSpark from '@/components/ClickSpark';
@@ -39,6 +40,7 @@ const App = () => (
           duration={900}       // Longer duration (ms) for a slower fade out
       >
         <BrowserRouter>
+         <ScrollToTop /> {/* ✅ add this */}
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />

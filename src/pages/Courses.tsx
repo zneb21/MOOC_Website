@@ -43,7 +43,7 @@ interface CourseCard {
   description: string;
 }
 
-const categories = ["All", "Tourism", "Cooking", "Agriculture", "Craftsmanship"];
+const categories = ["All", "Tourism", "Cooking", "Language", "History"];
 
 // adjust base URL if your folder name / path is different
 const API_URL = "http://localhost/mooc_api/get_courses.php";

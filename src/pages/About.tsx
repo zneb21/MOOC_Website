@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
 import { motion, useMotionValue, useSpring } from "framer-motion";
 //LiquidEther Background
 import LiquidEther from "@/components/ui/liquidether";
@@ -47,6 +48,15 @@ type PremiumTiltCardProps = {
   innerClassName?: string;
   maxTilt?: number;
 };
+
+type CourseStripFromApi = {
+  course_id: number;
+  course_category: string | null;
+  course_thumbnail_url?: string | null;
+};
+
+const COURSES_API_URL = "http://localhost/mooc_api/get_courses.php";
+
 
 function PremiumTiltCard({
   children,
@@ -158,33 +168,46 @@ function PremiumTiltCard({
 /* --------------------------------
    data
 --------------------------------- */
+// ✅ NEW imports
+import carlosPic from "@/assets/TeamPictures/carlos.png";
+import jakePic from "@/assets/TeamPictures/jake.png";
+import omPic from "@/assets/TeamPictures/om.png";
+import znebPic from "@/assets/TeamPictures/zneb.png";
+import vincentPic from "@/assets/TeamPictures/segocio.png";
+
 const teamMembers = [
   {
-    name: "Maria Santos",
-    role: "Founder & Lead Instructor",
-    bio: "Passionate about preserving Ilonggo heritage through education.",
+    name: "Carlos John Aristoki",
+    role: "Backend, Frontend UI/UX, Database Management, AI-Chat Bot Integration",
+    bio: "Demonstrates strong collaboration, adaptability, and problem-solving skills with expertise in Python and web development.",
+    photo: carlosPic,
   },
   {
-    name: "Ramon Cruz",
-    role: "Head of Content",
-    bio: "Ensures every course stays authentic, practical, and culturally rooted.",
+    name: "Jake S. Occeña",
+    role: "Backend & Database Management",
+    bio: "Adaptable and collaborative, with a process-driven mindset, strong analytical skills, and expertise in backend development.",
+    photo: jakePic,
   },
   {
-    name: "Ana Reyes",
-    role: "Community Manager",
-    bio: "Builds meaningful connections between learners and local experts.",
+    name: "Om Shanti Limpin",
+    role: "Frontend UI/UX",
+    bio: "Collaborative and adaptable, with expertise in front-end architecture, React.js development, and version control using Git/GitHub.",
+    photo: omPic,
   },
   {
-    name: "Jasper Lim",
-    role: "Product & Design",
-    bio: "Crafts modern, accessible learning experiences with clean UI systems.",
+    name: "Zneb John Delariman",
+    role: "Frontend UI/UX",
+    bio: "Collaborative and creative, with strengths in UI/UX design and effective use of version control.",
+    photo: znebPic,
   },
   {
-    name: "Lola Perla",
-    role: "Cultural Artisan Mentor",
-    bio: "Guides learners through traditional crafts and heritage practices.",
+    name: "John Vincent Segocio",
+    role: "Researcher, Web Designer",
+    bio: "Collaborative and creative, with strong adaptability and problem-solving skills.",
+    photo: vincentPic,
   },
 ];
+
 
 const values = [
   {
@@ -210,13 +233,13 @@ const values = [
   },
 ];
 
-const culturalStrip = [
-  { src: heroImage, label: "Heritage landscapes" },
-  { src: tourismImage, label: "Local tourism & identity" },
-  { src: cookingImage, label: "Cuisine & tradition" },
-  { src: agricultureImage, label: "Farming knowledge" },
-  { src: craftsImage, label: "Craftsmanship & art" },
+const fallbackStrip = [
+  { src: tourismImage, category: "Tourism" },
+  { src: agricultureImage, category: "Agriculture" },
 ];
+
+
+
 
 const listVariants = {
   hidden: { opacity: 0, y: 14 },
@@ -241,7 +264,49 @@ const About = () => {
     []
   );
 
+  // ✅ DB strip state
+  const [stripCourses, setStripCourses] = useState<CourseStripFromApi[]>([]);
+
+  // ✅ fetch same API as FeaturedCourses
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(COURSES_API_URL);
+        const data: CourseStripFromApi[] = await res.json();
+        setStripCourses(Array.isArray(data) ? data : []);
+      } catch {
+        setStripCourses([]);
+      }
+    })();
+  }, []);
+
+  // ✅ build the strip using DB first, fallback if missing
+  const glimpseStrip = useMemo(() => {
+    const fromDb = stripCourses.slice(0, 4).map((c, idx) => ({
+      src: c.course_thumbnail_url || fallbackStrip[idx]?.src || heroImage,
+      category: c.course_category || "General",
+    }));
+
+      while (fromDb.length < 4) {
+        fromDb.push(fallbackStrip[fromDb.length % fallbackStrip.length]);
+      }
+
+
+    return fromDb;
+  }, [stripCourses]);
+
+  // ✅ category -> icon mapping
+  const getCategoryIcon = (category: string) => {
+    const c = category.toLowerCase();
+    if (c.includes("tour")) return MapPin;
+    if (c.includes("cook") || c.includes("cuisin") || c.includes("food")) return Heart;
+    if (c.includes("agri") || c.includes("farm")) return Globe;
+    if (c.includes("craft") || c.includes("art")) return Camera;
+    return Sparkles;
+  };
+
   return (
+
      <div className="relative min-h-screen bg-muted">
        {/* Background Layer */}
        <div
@@ -317,10 +382,11 @@ const About = () => {
                   <motion.div
                     initial="hidden"
                     whileInView="show"
-                    viewport={{ once: true, amount: 0.25 }}
+                    viewport={{ once: true, amount: 0.2 }}
                     variants={listVariants}
-                    className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4"
+                    className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 justify-items-center"
                   >
+
                     {stats.map((s) => (
                       <motion.div key={s.label} variants={itemVariants}>
                         <PremiumTiltCard maxTilt={8}>
@@ -437,33 +503,42 @@ const About = () => {
               </div>
             </Reveal>
 
-            <motion.div
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, amount: 0.2 }}
-              variants={listVariants}
-              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
-            >
-              {culturalStrip.map((item) => (
-                <motion.div key={item.label} variants={itemVariants}>
-                  <PremiumTiltCard maxTilt={8} innerClassName="p-0">
-                    <div className="relative">
-                      <div className="aspect-[4/3] overflow-hidden">
-                        <img
-                          src={item.src}
-                          alt={item.label}
-                          className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
-                      </div>
+              <motion.div
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={listVariants}
+                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto"
+              >
 
-                      <div className="absolute inset-x-3 bottom-3 rounded-2xl px-3 py-2 bg-white/10 backdrop-blur-2xl border border-white/15">
-                        <div className="text-white/90 text-sm font-semibold">{item.label}</div>
+              {glimpseStrip.map((item, idx) => {
+                const Icon = getCategoryIcon(item.category);
+
+                return (
+                  <motion.div key={`${item.category}-${idx}`} variants={itemVariants}>
+                    <PremiumTiltCard maxTilt={8} innerClassName="p-0">
+                      <div className="relative">
+                        <div className="aspect-[4/3] overflow-hidden">
+                          <img
+                            src={item.src}
+                            alt={item.category}
+                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+                        </div>
+
+                        <div className="absolute inset-x-3 bottom-3 rounded-2xl px-3 py-2 bg-white/10 backdrop-blur-2xl border border-white/15">
+                          <div className="flex items-center gap-2 text-white/90 text-sm font-semibold">
+                            <Icon className="w-4 h-4 text-[#F4B942]" />
+                            <span>{item.category}</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </PremiumTiltCard>
-                </motion.div>
-              ))}
+                    </PremiumTiltCard>
+                  </motion.div>
+                );
+              })}
+
             </motion.div>
           </div>
         </section>
@@ -556,20 +631,23 @@ const About = () => {
                       {/* ✅ blur is softer + readable even in dark mode */}
                       <div className="transition-[filter] duration-0 blur-[1.1px] opacity-90 group-hover:opacity-100 group-hover:blur-0">
                         {/* avatar micro-interactions */}
-                        <div
+                       <div
                           className={cn(
-                            "w-20 h-20 rounded-full mx-auto mb-4 grid place-items-center",
-                            "bg-gradient-to-br from-emerald-500 to-teal-400",
+                            "w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden",
                             "border border-white/20",
                             "shadow-[0_18px_60px_rgba(16,185,129,0.20)]",
                             "transition-all duration-200",
                             "group-hover:scale-[1.06] group-hover:shadow-[0_22px_80px_rgba(16,185,129,0.35)]"
                           )}
                         >
-                          <span className="font-display text-xl font-bold text-emerald-950">
-                            {m.name.charAt(0)}
-                          </span>
+                          <img
+                            src={m.photo}
+                            alt={m.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
                         </div>
+
 
                         <h3 className="font-display text-lg font-semibold mb-1 text-zinc-900 dark:text-zinc-50">
                           {m.name}

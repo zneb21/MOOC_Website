@@ -31,25 +31,27 @@ try {
     // =====================
     // 1) COURSES + INSTRUCTORS
     // =====================
-    $sqlCourses = "
-        SELECT
-            c.course_id,
-            c.course_title,
-            c.course_description,
-            c.course_sub_description,
-            c.course_price,
-            c.course_category,
-            c.course_thumbnail,
-            c.instructor_id,
-            i.instructor_name,
-            i.instructor_title,
-            i.instructor_bio,
-            i.instructor_image_path
-        FROM ref_courses AS c
-        LEFT JOIN ref_instructors AS i
-            ON c.instructor_id = i.instructor_id
-        ORDER BY c.course_id ASC
-    ";
+        $sqlCourses = "
+            SELECT
+                c.course_id,
+                c.course_title,
+                c.course_description,
+                c.course_sub_description,
+                c.course_objectives,      
+                c.course_price,
+                c.course_category,
+                c.course_thumbnail,
+                c.instructor_id,
+                i.instructor_name,
+                i.instructor_title,
+                i.instructor_bio,
+                i.instructor_image_path
+            FROM ref_courses AS c
+            LEFT JOIN ref_instructors AS i
+                ON c.instructor_id = i.instructor_id
+            ORDER BY c.course_id ASC
+        ";
+
 
     $stmt    = $pdo->query($sqlCourses);
     $courses = $stmt->fetchAll();

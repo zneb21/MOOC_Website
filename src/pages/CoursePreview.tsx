@@ -59,11 +59,19 @@ type CourseContentFromApi = {
   lessons?: LessonFromApi[];
 };
 
+type CourseOverviewFromApi = {
+  overview_id: number;
+  course_conn: number;
+  overview_text: string;
+  sort_order: number;
+};
+
 interface CourseFromApi {
   course_id: number;
   course_title: string;
   course_description: string | null;
   course_sub_description: string | null;
+  course_objectives?: string | null; // ✅ ADD THIS
   course_price: number;
   course_category: string | null;
   course_thumbnail_url?: string | null;
@@ -72,6 +80,8 @@ interface CourseFromApi {
   instructor_image_url?: string | null;
   instructor_title?: string | null;  
   course_contents?: CourseContentFromApi[];
+  course_overview?: CourseOverviewFromApi[];
+  
 }
 
 const CoursePreview = () => {
@@ -219,6 +229,15 @@ const CoursePreview = () => {
 
   const averageRating = allReviews.length > 0 ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length : 0;
 
+const objectivesFromDb =
+  (db.course_objectives ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+
+
+
   const course = {
     id: db.course_id,
     title: db.course_title,
@@ -234,10 +253,12 @@ const CoursePreview = () => {
     price: `₱${db.course_price.toLocaleString()}`,
     description: db.course_sub_description ?? db.course_description ?? "",
     longDescription: db.course_description ?? "",
-    objectives: ["Master local techniques", "Understand cultural history", "Apply skills practically", "Join a community of learners"], // Fallback if DB empty
+    objectives: objectivesFromDb, // ✅ DB only
+
     modules: (db.course_contents ?? []).map((content) => ({
       title: content.course_content_title,
       duration: content.course_content_length ?? "",
+
       lessons: (content.lessons ?? []).map((lesson) => ({
         title: lesson.lesson_title,
         duration: lesson.lesson_duration ?? "",
@@ -376,14 +397,21 @@ const CoursePreview = () => {
                         <BookOpen className="w-6 h-6 text-emerald-600 dark:text-[#F4B942]" />
                         What You'll Learn
                      </h3>
-                     <div className="grid sm:grid-cols-2 gap-4">
-                        {course.objectives.map((obj, i) => (
-                           <div key={i} className="flex items-start gap-3 text-zinc-700 dark:text-zinc-300">
+                        {course.objectives.length > 0 ? (
+                        <div className="grid sm:grid-cols-2 gap-4">
+                           {course.objectives.map((obj, i) => (
+                              <div key={i} className="flex items-start gap-3 text-zinc-700 dark:text-zinc-300">
                               <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                               <span className="text-sm leading-relaxed">{obj}</span>
-                           </div>
-                        ))}
-                     </div>
+                              </div>
+                           ))}
+                        </div>
+                        ) : (
+                        <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                           No learning objectives added yet.
+                        </p>
+                        )}
+
                   </div>
 
                   {/* Syllabus / Modules */}
