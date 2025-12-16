@@ -204,7 +204,7 @@ const SnakeGameComponent = () => {
           const newHighScore = scoreRef.current;
           setHighScore(newHighScore);
           highScoreRef.current = newHighScore;
-        localStorage.setItem('snakeHighScore', newHighScore.toString());
+          localStorage.setItem('snakeHighScore', newHighScore.toString());
         }
         return;
       }
@@ -280,11 +280,11 @@ const SnakeGameComponent = () => {
       };
       gameLoopRef.current = requestAnimationFrame(animate);
 
-    return () => {
-      if (gameLoopRef.current) {
-        cancelAnimationFrame(gameLoopRef.current);
-      }
-    };
+      return () => {
+        if (gameLoopRef.current) {
+          cancelAnimationFrame(gameLoopRef.current);
+        }
+      };
     } else {
       if (gameLoopRef.current) {
         cancelAnimationFrame(gameLoopRef.current);
@@ -732,7 +732,7 @@ const TicTacToeComponent = () => {
 
   const renderCell = (index: number) => {
     const value = board[index];
-  return (
+    return (
       <button
         onClick={() => handleCellClick(index)}
         disabled={!!value || gameState !== 'playing' || !!winner}
@@ -767,7 +767,7 @@ const TicTacToeComponent = () => {
           <div className="flex items-center justify-between mb-2">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/20 dark:bg-emerald-500/30 flex items-center justify-center">
               <X className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-      </div>
+            </div>
             <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">X Wins</span>
           </div>
           <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{xWins}</div>
@@ -779,7 +779,7 @@ const TicTacToeComponent = () => {
           <div className="flex items-center justify-between mb-2">
             <div className="w-10 h-10 rounded-xl bg-blue-500/20 dark:bg-blue-500/30 flex items-center justify-center">
               <Circle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
+            </div>
             <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">O Wins</span>
           </div>
           <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{oWins}</div>
@@ -791,13 +791,13 @@ const TicTacToeComponent = () => {
           <div className="flex items-center justify-between mb-2">
             <div className="w-10 h-10 rounded-xl bg-slate-500/20 dark:bg-slate-500/30 flex items-center justify-center">
               <Minus className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                    </div>
+            </div>
             <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Draws</span>
-                  </div>
+          </div>
           <div className="text-3xl font-bold text-slate-600 dark:text-slate-400">{draws}</div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Tied games</div>
-                    </div>
-                  </div>
+        </div>
+      </div>
 
       {/* Control Buttons */}
       <div className="flex justify-end gap-2">
@@ -814,14 +814,14 @@ const TicTacToeComponent = () => {
               <div className="flex items-center gap-2">
                 <X className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Player X</span>
-                    </div>
+              </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Circle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 <span className="text-sm font-bold text-blue-600 dark:text-blue-400">Player O</span>
-                  </div>
+              </div>
             )}
-                </div>
+          </div>
         )}
         {gameState === 'gameover' && (
           <>
@@ -844,7 +844,7 @@ const TicTacToeComponent = () => {
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Plaza Squares</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400">Claim three tiles across Iloilo’s plazas to win</p>
           </div>
-                  {gameState === 'playing' && (
+          {gameState === 'playing' && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg border border-blue-500/20">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">In Progress</span>
@@ -882,7 +882,7 @@ const TicTacToeComponent = () => {
               <Button onClick={startGame} variant="default" size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg">
                 <Play className="w-5 h-5 mr-2" />
                 Start Match
-                    </Button>
+              </Button>
             </div>
           </div>
         )}
@@ -919,7 +919,7 @@ const TicTacToeComponent = () => {
                 <Button onClick={resetGame} variant="default" size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg">
                   <RotateCcw className="w-5 h-5 mr-2" />
                   Play Again
-                    </Button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1300,7 +1300,7 @@ const RockPaperScissorsComponent = () => {
               </div>
               <h2 className="font-display text-3xl font-bold text-slate-900 dark:text-white mb-3">
                 Festival Clash
-                      </h2>
+              </h2>
               <p className="text-slate-600 dark:text-white/70 mb-2 text-sm">
                 Choose your move and out-dance the crowd in a Dinagyang showdown.
               </p>
@@ -1308,15 +1308,15 @@ const RockPaperScissorsComponent = () => {
                 Build your win streak—lose or draw and the drums reset to zero.
               </p>
               <Button onClick={startGame} variant="default" size="lg" className="bg-orange-600 hover:bg-orange-700 shadow-lg">
-                        <Play className="w-5 h-5 mr-2" />
+                <Play className="w-5 h-5 mr-2" />
                 Start Showdown
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
 
-              {/* Instructions */}
+      {/* Instructions */}
       <div className="bg-gradient-to-br from-white/90 via-orange-50/80 to-white/90 dark:from-zinc-900/90 dark:via-orange-950/80 dark:to-zinc-900/90 backdrop-blur-2xl border-2 border-orange-200/50 dark:border-orange-800/30 rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
@@ -1324,7 +1324,7 @@ const RockPaperScissorsComponent = () => {
               <Sparkles className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <span>How to Play - Festival Clash</span>
-                </h3>
+          </h3>
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 dark:bg-orange-500/20 rounded-lg border border-orange-500/20">
             <Gamepad2 className="w-4 h-4 text-orange-600 dark:text-orange-400" />
             <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">Dinagyang Duel</span>
@@ -1333,60 +1333,60 @@ const RockPaperScissorsComponent = () => {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-300">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
-                      1
-                    </div>
+              1
+            </div>
             <div className="flex-1">
               <div className="font-bold text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
                 <Hand className="w-4 h-4" />
                 Choose Your Move
-                    </div>
+              </div>
               <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 Select <span className="font-semibold">Rock</span>, <span className="font-semibold">Paper</span>, or <span className="font-semibold">Scissors</span>—like picking your Dinagyang dance step.
-                  </div>
+              </div>
             </div>
           </div>
           <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-300">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
-                      2
-                    </div>
+              2
+            </div>
             <div className="flex-1">
               <div className="font-bold text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
                 <Target className="w-4 h-4" />
                 Game Rules
-                    </div>
+              </div>
               <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 <span className="font-semibold">Rock</span> beats <span className="font-semibold">Scissors</span>, <span className="font-semibold">Scissors</span> beats <span className="font-semibold">Paper</span>, <span className="font-semibold">Paper</span> beats <span className="font-semibold">Rock</span>—the simple rules behind every festival duel.
-                  </div>
+              </div>
             </div>
           </div>
           <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-300">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
-                      3
-                    </div>
+              3
+            </div>
             <div className="flex-1">
               <div className="font-bold text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Build Your Festival Streak
-                    </div>
+              </div>
               <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 Win consecutive rounds to build your crowd-cheer streak. Each victory adds +1 to your meter.
-                  </div>
+              </div>
             </div>
           </div>
           <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-black/20 border border-orange-200/30 dark:border-orange-800/20 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-300">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-400 dark:to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
-                      4
-                    </div>
+              4
+            </div>
             <div className="flex-1">
               <div className="font-bold text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
                 <RotateCcw className="w-4 h-4" />
                 Drumbeat Reset
-                    </div>
+              </div>
               <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 Lose or draw and the Dinagyang drumbeat resets to zero—try again to beat your best streak.
-                  </div>
-                </div>
               </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1462,35 +1462,33 @@ const DinosaurGame = () => {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
               <Tabs defaultValue="snake" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 mb-8 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-2 border-emerald-500/20 dark:border-emerald-400/20 rounded-2xl p-2 shadow-lg gap-2 ring-1 ring-[#F4B942]/10">
+                <TabsList className="grid w-full grid-cols-3 mb-8 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-2 border-emerald-500/20 dark:border-emerald-400/20 rounded-2xl p-2 shadow-lg gap-2 ring-1 ring-[#F4B942]/10 h-auto">
                   <TabsTrigger 
                     value="snake" 
-                    className="text-xs md:text-sm font-bold transition-all duration-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl"
+                    className="h-auto py-3 text-xs md:text-sm font-bold transition-all duration-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl flex flex-col sm:flex-row gap-1 sm:gap-2 items-center justify-center"
                   >
-                    <span className="flex items-center gap-1 md:gap-2">
-                      <span className="text-base md:text-lg">🌊</span>
-                      <span className="hidden sm:inline">River Run</span>
-                    </span>
+                    <span className="text-lg md:text-xl">🌊</span>
+                    <span className="hidden sm:inline">River Run</span>
+                    <span className="sm:hidden">River</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="tictactoe" 
-                    className="text-xs md:text-sm font-bold transition-all duration-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl"
+                    className="h-auto py-3 text-xs md:text-sm font-bold transition-all duration-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl flex flex-col sm:flex-row gap-1 sm:gap-2 items-center justify-center"
                   >
-                    <span className="flex items-center gap-1 md:gap-2">
-                      <span className="text-base md:text-lg">🏛️</span>
-                      <span className="hidden sm:inline">Plaza Squares</span>
-                    </span>
+                    <span className="text-lg md:text-xl">🏛️</span>
+                    <span className="hidden sm:inline">Plaza Squares</span>
+                    <span className="sm:hidden">Plaza</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="rps" 
-                    className="text-xs md:text-sm font-bold transition-all duration-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl"
+                    className="h-auto py-3 text-xs md:text-sm font-bold transition-all duration-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl flex flex-col sm:flex-row gap-1 sm:gap-2 items-center justify-center"
                   >
-                    <span className="flex items-center gap-1 md:gap-2">
-                      <span className="text-base md:text-lg">🎉</span>
-                      <span className="hidden sm:inline">Festival Clash</span>
-                    </span>
+                    <span className="text-lg md:text-xl">🎉</span>
+                    <span className="hidden sm:inline">Festival Clash</span>
+                    <span className="sm:hidden">Festival</span>
                   </TabsTrigger>
                 </TabsList>
+                
                 <TabsContent value="snake" className="mt-0">
                   <SnakeGameComponent />
                 </TabsContent>
