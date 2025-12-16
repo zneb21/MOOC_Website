@@ -113,7 +113,7 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
-          <p className="text-white/50 text-sm">© 2024 SilayLearn. All rights reserved.</p>
+          <p className="text-white/50 text-sm">© 2025 SilayLearn. All rights reserved.</p>
 
           <div className="flex gap-4">
             <Link to="#" className="text-white/50 hover:text-white/80 text-sm transition-colors">
