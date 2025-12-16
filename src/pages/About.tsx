@@ -379,13 +379,14 @@ const About = () => {
 
                 {/* ✅ these are also cards, so they now look good in dark mode */}
                 <Reveal delayMs={220}>
-                  <motion.div
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true, amount: 0.2 }}
-                    variants={listVariants}
-                    className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 justify-items-center"
-                  >
+                    <motion.div
+                      initial="hidden"
+                      whileInView="show"
+                      viewport={{ once: true, amount: 0.2 }}
+                      variants={listVariants}
+                      className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-4 justify-items-center"
+                    >
+
 
                     {stats.map((s) => (
                       <motion.div key={s.label} variants={itemVariants}>
